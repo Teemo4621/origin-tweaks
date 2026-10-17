@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tile_label">แทรกเฟรม</string>
+    <string name="tile_label_off">แทรกเฟรม ปิด</string>
+    <string name="tile_label_custom">แทรกเฟรม เปิด</string>
+    <string name="tile_label_setup">ต้องตั้งค่า</string>
+    <string name="tile_subtitle_on">แทรกเฟรม เปิด</string>
+    <string name="tile_subtitle_off">แตะเพื่อเปิด</string>
+    <string name="tile_setup_needed">แตะเพื่อตั้งค่า</string>
+    <string name="tile_custom">ค่าจากระบบ</string>
+    <string name="tile_state_on">เปิด %1$s</string>
+    <string name="tile_state_off">ปิด</string>
+    <string name="tile_description">แทรกเฟรม: %1$s</string>
+    <string name="error_blocked">ระบบไม่ยอมรับค่าที่เขียน (ค่าถูกรีเซ็ตทันที)</string>
+    <string name="profile_channel">แทรกเฟรมอัตโนมัติ</string>
+    <string name="profile_title">แทรกเฟรมอัตโนมัติ</string>
+    <string name="profile_waiting">ปิดอยู่</string>
+    <string name="profile_active">%1$s · %2$s</string>
+</resources>

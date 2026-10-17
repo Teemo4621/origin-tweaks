@@ -1,0 +1,162 @@
+import 'package:flutter/material.dart';
+
+import '../models/preset.dart';
+import '../native/native_bridge.dart';
+import '../widgets/info_card.dart';
+import '../widgets/onboarding_card.dart';
+import '../widgets/preset_grid.dart';
+import '../widgets/status_hero.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key, required this.refresh, this.onOpenSetup});
+
+  final Listenable refresh;
+  final VoidCallback? onOpenSetup;
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  SetupStatus _status = const SetupStatus(helper: true, secureSettings: true);
+  CurrentSetting _current = const CurrentSetting();
+  bool _loaded = false;
+  Preset? _pending;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.refresh.addListener(_load);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    widget.refresh.removeListener(_load);
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final status = await NativeBridge.setupStatus();
+    final current = await NativeBridge.current();
+    if (!mounted) return;
+    setState(() {
+      _status = status;
+      _current = current;
+      _loaded = true;
+    });
+  }
+
+  Future<void> _apply(Preset preset) async {
+    setState(() => _pending = preset);
+    final result = await NativeBridge.applyPreset(preset);
+    await _load();
+    if (!mounted) return;
+    setState(() => _pending = null);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      content: Text(result.messageFor(preset)),
+      action: result == ApplyResult.noPermission || result == ApplyResult.noHelper
+          ? widget.onOpenSetup == null
+              ? null
+              : SnackBarAction(label: 'ตั้งค่า', onPressed: widget.onOpenSetup!)
+          : null,
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final ready = _status.ready;
+
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        children: [
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            alignment: Alignment.topCenter,
+            child: ready
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: OnboardingCard(
+                      status: _status,
+                      onChanged: (_) => _load(),
+                      onRefresh: _load,
+                      onOpenSetup: widget.onOpenSetup,
+                    ),
+                  ),
+          ),
+          StatusHero(current: _current, loaded: _loaded, busy: _pending != null),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              children: [
+                Expanded(child: Text('เลือกโหมด', style: text.titleMedium)),
+                if (!ready)
+                  Text('ตั้งค่าให้เสร็จก่อน', style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          PresetGrid(
+            selected: _loaded ? _current.effective : null,
+            pending: _pending,
+            enabled: ready,
+            onSelected: _apply,
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              'ใช้กับทุกเกม · 144 FPS คือค่าที่ community ทดสอบแล้ว ส่วน 90/120 ยังไม่มีผลทดสอบ',
+              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const InfoCard(
+            icon: Icons.dashboard_customize_outlined,
+            title: 'เพิ่มปุ่มลัดใน panel',
+            children: [
+              NumberedStep(number: 1, text: 'เลื่อน panel ลงมา'),
+              NumberedStep(number: 2, text: 'แตะไอคอนแก้ไข'),
+              NumberedStep(number: 3, text: 'ลากปุ่ม "แทรกเฟรม" ขึ้นไปวาง'),
+              SizedBox(height: 8),
+              _TileHint(icon: Icons.touch_app_outlined, text: 'แตะเพื่อวน ปิด → 90 → 120 → 144'),
+              _TileHint(icon: Icons.ads_click, text: 'กดค้างเพื่อเปิดแอปนี้'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TileHint extends StatelessWidget {
+  const _TileHint({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: scheme.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(text, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
+          ),
+        ],
+      ),
+    );
+  }
+}

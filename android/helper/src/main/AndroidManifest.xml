@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+
+    <application
+        android:allowBackup="false"
+        android:label="Origin Tweaks Helper">
+        <provider
+            android:name=".HelperProvider"
+            android:authorities="dev.origintweaks.origin_tweaks.helper.settings"
+            android:exported="true" />
+    </application>
+</manifest>
