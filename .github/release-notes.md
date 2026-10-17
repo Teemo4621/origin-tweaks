@@ -1,5 +1,7 @@
 > [!WARNING]
 > **เวอร์ชันทดสอบ (alpha)** ยังอาจมีบัค ทดสอบแล้วเฉพาะ iQOO 15 (PD2505) บน OriginOS 6
+>
+> **Alpha build** — may still have bugs. Tested only on the iQOO 15 (PD2505), OriginOS 6. The app follows the device language (Thai / English). See the [English README](../../blob/main/README.en.md) for install steps.
 
 ## ติดตั้ง
 
