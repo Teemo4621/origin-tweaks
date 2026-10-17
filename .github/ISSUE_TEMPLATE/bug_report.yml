@@ -1,0 +1,50 @@
+name: รายงานปัญหา
+description: แจ้งบัคหรือสิ่งที่ใช้งานไม่ได้
+labels: [bug]
+body:
+  - type: input
+    id: device
+    attributes:
+      label: รุ่นเครื่อง
+      placeholder: เช่น iQOO 15 (PD2505F)
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: เวอร์ชัน OriginOS / Android
+      placeholder: เช่น OriginOS 6 / Android 16
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: เวอร์ชันแอป
+      placeholder: เช่น 0.1.0-alpha.1
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: ส่วนที่มีปัญหา
+      options:
+        - ตั้งค่าอัตโนมัติ
+        - เปิด/ปิดแทรกเฟรม
+        - ปุ่มใน panel
+        - Profile รายเกม
+        - อื่นๆ
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: เกิดอะไรขึ้น
+      description: ทำอะไร คาดว่าจะเกิดอะไร และเกิดอะไรจริง
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log หรือภาพหน้าจอ (ถ้ามี)
+      description: "เช่น ผลจาก adb logcat | grep OriginTweaks"
+      render: text
