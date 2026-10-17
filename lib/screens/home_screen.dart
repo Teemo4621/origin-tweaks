@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/gen/app_localizations.dart';
 import '../models/preset.dart';
 import '../native/native_bridge.dart';
 import '../widgets/info_card.dart';
@@ -53,14 +54,15 @@ class _HomeScreenState extends State<HomeScreen> {
     await _load();
     if (!mounted) return;
     setState(() => _pending = null);
+    final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(
-      content: Text(result.messageFor(preset)),
+      content: Text(result.message(l10n, preset)),
       action: result == ApplyResult.noPermission || result == ApplyResult.noHelper
           ? widget.onOpenSetup == null
               ? null
-              : SnackBarAction(label: 'ตั้งค่า', onPressed: widget.onOpenSetup!)
+              : SnackBarAction(label: l10n.actionSetup, onPressed: widget.onOpenSetup!)
           : null,
     ));
   }
@@ -69,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final ready = _status.ready;
 
     return RefreshIndicator(
@@ -97,9 +100,9 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Row(
               children: [
-                Expanded(child: Text('เลือกโหมด', style: text.titleMedium)),
+                Expanded(child: Text(l10n.homeChooseMode, style: text.titleMedium)),
                 if (!ready)
-                  Text('ตั้งค่าให้เสร็จก่อน', style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant)),
+                  Text(l10n.homeFinishSetupFirst, style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant)),
               ],
             ),
           ),
@@ -114,21 +117,21 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              'ใช้กับทุกเกม · 144 FPS คือค่าที่ community ทดสอบแล้ว ส่วน 90/120 ยังไม่มีผลทดสอบ',
+              l10n.homePresetNote,
               style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
             ),
           ),
           const SizedBox(height: 24),
-          const InfoCard(
+          InfoCard(
             icon: Icons.dashboard_customize_outlined,
-            title: 'เพิ่มปุ่มลัดใน panel',
+            title: l10n.tileCardTitle,
             children: [
-              NumberedStep(number: 1, text: 'เลื่อน panel ลงมา'),
-              NumberedStep(number: 2, text: 'แตะไอคอนแก้ไข'),
-              NumberedStep(number: 3, text: 'ลากปุ่ม "แทรกเฟรม" ขึ้นไปวาง'),
-              SizedBox(height: 8),
-              _TileHint(icon: Icons.touch_app_outlined, text: 'แตะเพื่อวน ปิด → 90 → 120 → 144'),
-              _TileHint(icon: Icons.ads_click, text: 'กดค้างเพื่อเปิดแอปนี้'),
+              NumberedStep(number: 1, text: l10n.tileStep1),
+              NumberedStep(number: 2, text: l10n.tileStep2),
+              NumberedStep(number: 3, text: l10n.tileStep3),
+              const SizedBox(height: 8),
+              _TileHint(icon: Icons.touch_app_outlined, text: l10n.tileHintTap),
+              _TileHint(icon: Icons.ads_click, text: l10n.tileHintLongPress),
             ],
           ),
         ],

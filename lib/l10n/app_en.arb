@@ -1,0 +1,153 @@
+{
+  "@@locale": "en",
+  "appTitle": "Origin Tweaks",
+  "titleProfiles": "Per-game profiles",
+  "titleSetup": "Initial setup",
+  "navFrameGen": "Frame gen",
+  "navProfiles": "Profiles",
+  "navSetup": "Setup",
+  "presetOff": "Off",
+  "presetFps": "{fps} FPS",
+  "@presetFps": {
+    "placeholders": {
+      "fps": {
+        "type": "int"
+      }
+    }
+  },
+  "applyEnabled": "{preset} enabled",
+  "@applyEnabled": {
+    "placeholders": {
+      "preset": {
+        "type": "String"
+      }
+    }
+  },
+  "applyDisabled": "Frame generation turned off",
+  "applyBlocked": "The system rejected the value (it was reset immediately)",
+  "applyNotSetUp": "Initial setup isn't finished yet",
+  "applyFailed": "Couldn't apply the setting",
+  "actionSetup": "Setup",
+  "homeChooseMode": "Choose a mode",
+  "homeFinishSetupFirst": "Finish setup first",
+  "homePresetNote": "Applies to all games · 144 FPS is community-tested; 90/120 are untested",
+  "tileCardTitle": "Add the Quick Settings tile",
+  "tileStep1": "Pull down the Quick Settings panel",
+  "tileStep2": "Tap the edit icon",
+  "tileStep3": "Drag the \"Frame gen\" tile into place",
+  "tileHintTap": "Tap to cycle Off → 90 → 120 → 144",
+  "tileHintLongPress": "Long-press to open this app",
+  "setupSectionStatus": "Status",
+  "setupSectionTips": "Tips",
+  "setupLimitsTitle": "Limitations",
+  "setupLimitsBody": "The setting applies to every game, but whether it takes effect depends on GPU/system support for that game and FPS. GameCube may overwrite it when a game starts (the app sets it back).",
+  "setupPullToRefresh": "Pull down to check status again",
+  "profilesHeaderTitle": "Set FPS per game",
+  "profilesHeaderBody": "Open a configured game → its FPS is used · Leave the game → previous setting restored",
+  "profilesEnable": "Enable per-game profiles",
+  "profilesNoneConfigured": "No apps configured yet. Pick an FPS below",
+  "profilesConfiguredCount": "{count, plural, =1{1 app configured} other{{count} apps configured}}",
+  "@profilesConfiguredCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "profilesServiceOff": "Off. The Quick Settings tile value applies to all games",
+  "usageAccessRequired": "Usage access required",
+  "usageAccessPurpose": "Used to detect which game is currently open",
+  "grant": "Grant",
+  "searchAppsHint": "Search apps/games",
+  "clear": "Clear",
+  "loadingApps": "Loading apps…",
+  "noAppsFound": "No apps found on this device",
+  "noAppsMatch": "No apps match \"{query}\"",
+  "@noAppsMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "sectionGames": "Games",
+  "sectionOtherApps": "Other apps",
+  "profileNotSet": "Not set",
+  "openShizuku": "Open Shizuku",
+  "checkAgain": "Check again",
+  "onboardingTitle": "Getting started",
+  "onboardingSubtitle": "Set up once via Shizuku, then use frame generation anytime",
+  "onboardingStep1": "Install and start Shizuku",
+  "onboardingStep2": "Allow Origin Tweaks to use Shizuku",
+  "onboardingStep2Detail": "You'll be asked when you tap Auto setup",
+  "onboardingStep3": "Tap \"Auto setup\"",
+  "onboardingStep3Detail": "The app installs the helper and grants the required permissions for you",
+  "onboardingLastError": "Last attempt failed: {error}",
+  "@onboardingLastError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingSetupDetails": "View setup details",
+  "badgeTested": "Tested",
+  "badgeUntested": "Untested",
+  "presetOffCaption": "Restores all defaults",
+  "autoSetupFailed": "Setup failed: {error}",
+  "@autoSetupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "autoSetupUsageLeft": "One step left: turn on Usage access for Origin Tweaks",
+  "autoSetupDone": "Setup complete, ready to use (you can stop Shizuku)",
+  "autoSetupRunning": "Setting up…",
+  "autoSetup": "Auto setup",
+  "setupErrorUnknown": "Unknown reason",
+  "setupErrorShizuku": "Shizuku is not ready",
+  "setupErrorSecure": "Couldn't grant WRITE_SECURE_SETTINGS",
+  "setupErrorHelper": "Couldn't install the helper ({error})",
+  "@setupErrorHelper": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "setupComplete": "Setup complete",
+  "setupFirstTime": "First-time setup",
+  "setupHelper": "Install helper (Origin Tweaks Helper)",
+  "setupHelperDetail": "Writes the frame generation system settings",
+  "setupSecure": "WRITE_SECURE_SETTINGS permission",
+  "setupSecureDetail": "Required to turn frame generation on/off",
+  "setupUsage": "Usage access (for per-game profiles)",
+  "setupUsageManual": "Can't be granted automatically. Tap Open and turn on the switch for Origin Tweaks",
+  "open": "Open",
+  "setupBattery": "Battery optimization exemption",
+  "setupBatteryDetail": "Keeps per-game profiles running in the background",
+  "setupStartShizukuFirst": "Start Shizuku first (only needed for this setup)",
+  "requiredBadge": "Required",
+  "shizukuReady": "Shizuku is ready",
+  "shizukuReadyDetail": "Only needed to grant permissions once; you can stop Shizuku afterwards",
+  "shizukuNoPermission": "Not allowed yet",
+  "shizukuNoPermissionDetail": "Tap Allow to let the app use Shizuku",
+  "shizukuNotRunning": "Shizuku is not running",
+  "shizukuNotRunningDetail": "Open Shizuku and tap Start via Wireless debugging (needed again after every reboot)",
+  "shizukuNotInstalled": "Shizuku is not installed",
+  "shizukuNotInstalledDetail": "Install Shizuku from GitHub or the Play Store first",
+  "shizukuUnsupported": "Shizuku is too old",
+  "shizukuUnsupportedDetail": "Update Shizuku to version 11 or later",
+  "allow": "Allow",
+  "heroTitle": "Frame generation · All games",
+  "heroLoading": "Loading",
+  "heroLoadingCaption": "Reading the system setting…",
+  "heroActive": "Active",
+  "heroActiveCaption": "MEMC, super resolution and the GameWatch FPS target are on together",
+  "heroCustom": "System value",
+  "heroCustomCaption": "Set by GameCube or another app. Pick a preset below to override it",
+  "heroOff": "Off",
+  "heroOffCaption": "Pick an FPS below to enable frame generation for all games"
+}

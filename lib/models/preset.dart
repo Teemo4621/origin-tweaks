@@ -1,13 +1,19 @@
-enum Preset {
-  off('off', 'ปิด'),
-  fps90('fps90', '90 FPS'),
-  fps120('fps120', '120 FPS'),
-  fps144('fps144', '144 FPS');
+import '../l10n/gen/app_localizations.dart';
 
-  const Preset(this.id, this.label);
+enum Preset {
+  off('off'),
+  fps90('fps90'),
+  fps120('fps120'),
+  fps144('fps144');
+
+  const Preset(this.id);
 
   final String id;
-  final String label;
+
+  String label(AppLocalizations l10n) => switch (fps) {
+        final fps? => l10n.presetFps(fps),
+        null => l10n.presetOff,
+      };
 
   bool get enabled => this != off;
 
@@ -38,11 +44,11 @@ enum ApplyResult {
   static ApplyResult fromCode(int? code) =>
       code != null && code >= 0 && code < values.length ? values[code] : failed;
 
-  String messageFor(Preset preset) => switch (this) {
-        ok => preset.enabled ? 'เปิด ${preset.label} แล้ว' : 'ปิดแทรกเฟรมแล้ว',
-        blocked => 'ระบบไม่ยอมรับค่าที่เขียน (ค่าถูกรีเซ็ตทันที)',
-        noPermission || noHelper => 'ยังตั้งค่าครั้งแรกไม่เสร็จ',
-        failed => 'ตั้งค่าไม่สำเร็จ',
+  String message(AppLocalizations l10n, Preset preset) => switch (this) {
+        ok => preset.enabled ? l10n.applyEnabled(preset.label(l10n)) : l10n.applyDisabled,
+        blocked => l10n.applyBlocked,
+        noPermission || noHelper => l10n.applyNotSetUp,
+        failed => l10n.applyFailed,
       };
 }
 

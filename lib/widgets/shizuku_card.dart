@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/gen/app_localizations.dart';
 import '../native/native_bridge.dart';
 import 'info_card.dart';
 
-(String, String) shizukuCopy(ShizukuState state) => switch (state) {
-      ShizukuState.ready => ('Shizuku พร้อมใช้งาน', 'ใช้ให้สิทธิ์ครั้งแรกเท่านั้น หลังจากนั้นปิด Shizuku ได้'),
-      ShizukuState.noPermission => ('ยังไม่ได้อนุญาต', 'กดอนุญาตให้แอปใช้ Shizuku'),
-      ShizukuState.notRunning => (
-          'Shizuku ยังไม่ทำงาน',
-          'เปิดแอป Shizuku แล้วกด Start ผ่าน Wireless debugging (ต้องทำใหม่ทุกครั้งที่รีบูต)'
-        ),
-      ShizukuState.notInstalled => ('ยังไม่ได้ติดตั้ง Shizuku', 'ติดตั้ง Shizuku จาก GitHub หรือ Play Store ก่อน'),
-      ShizukuState.unsupported => ('Shizuku เวอร์ชันเก่าเกินไป', 'อัปเดต Shizuku เป็นเวอร์ชัน 11 ขึ้นไป'),
+(String, String) shizukuCopy(AppLocalizations l10n, ShizukuState state) => switch (state) {
+      ShizukuState.ready => (l10n.shizukuReady, l10n.shizukuReadyDetail),
+      ShizukuState.noPermission => (l10n.shizukuNoPermission, l10n.shizukuNoPermissionDetail),
+      ShizukuState.notRunning => (l10n.shizukuNotRunning, l10n.shizukuNotRunningDetail),
+      ShizukuState.notInstalled => (l10n.shizukuNotInstalled, l10n.shizukuNotInstalledDetail),
+      ShizukuState.unsupported => (l10n.shizukuUnsupported, l10n.shizukuUnsupportedDetail),
     };
 
 class ShizukuCard extends StatelessWidget {
@@ -23,13 +21,14 @@ class ShizukuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final ready = state == ShizukuState.ready;
-    final (title, detail) = shizukuCopy(state);
+    final (title, detail) = shizukuCopy(l10n, state);
 
     final action = switch (state) {
       ShizukuState.noPermission => FilledButton.icon(
           icon: const Icon(Icons.lock_open),
-          label: const Text('อนุญาต'),
+          label: Text(l10n.allow),
           onPressed: () async {
             await NativeBridge.requestShizuku();
             onChanged();
@@ -37,7 +36,7 @@ class ShizukuCard extends StatelessWidget {
         ),
       ShizukuState.notRunning => FilledButton.tonalIcon(
           icon: const Icon(Icons.open_in_new),
-          label: const Text('เปิด Shizuku'),
+          label: Text(l10n.openShizuku),
           onPressed: () => NativeBridge.openShizuku(),
         ),
       _ => null,

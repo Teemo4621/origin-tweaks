@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/gen/app_localizations.dart';
 import '../native/native_bridge.dart';
 import '../widgets/info_card.dart';
 import '../widgets/setup_card.dart';
@@ -39,13 +40,14 @@ class _SetupScreenState extends State<SetupScreen> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          const _SectionLabel('สถานะ'),
+          _SectionLabel(l10n.setupSectionStatus),
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             alignment: Alignment.topCenter,
@@ -58,19 +60,18 @@ class _SetupScreenState extends State<SetupScreen> {
           ),
           SetupCard(status: _status, onChanged: (status) => setState(() => _status = status)),
           const SizedBox(height: 24),
-          const _SectionLabel('คำแนะนำ'),
+          _SectionLabel(l10n.setupSectionTips),
           InfoCard(
             icon: Icons.info_outline,
             iconBackground: scheme.surfaceContainerHighest,
             iconForeground: scheme.onSurfaceVariant,
-            title: 'ข้อจำกัด',
-            body: 'ค่าที่ตั้งบังคับใช้กับทุกเกม แต่ผลจริงขึ้นกับว่าชิปภาพ/ระบบรองรับเกมและ FPS นั้นหรือไม่ '
-                'GameCube อาจเขียนทับค่าตอนเข้าเกม (แอปจะตั้งค่ากลับให้)',
+            title: l10n.setupLimitsTitle,
+            body: l10n.setupLimitsBody,
           ),
           const SizedBox(height: 16),
           Center(
             child: Text(
-              'ดึงลงเพื่อตรวจสถานะอีกครั้ง',
+              l10n.setupPullToRefresh,
               style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
             ),
           ),

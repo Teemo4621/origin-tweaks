@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="tile_label">แทรกเฟรม</string>
-    <string name="tile_label_off">แทรกเฟรม ปิด</string>
-    <string name="tile_label_custom">แทรกเฟรม เปิด</string>
-    <string name="tile_label_setup">ต้องตั้งค่า</string>
-    <string name="tile_subtitle_on">แทรกเฟรม เปิด</string>
-    <string name="tile_subtitle_off">แตะเพื่อเปิด</string>
-    <string name="tile_setup_needed">แตะเพื่อตั้งค่า</string>
-    <string name="tile_custom">ค่าจากระบบ</string>
-    <string name="tile_state_on">เปิด %1$s</string>
-    <string name="tile_state_off">ปิด</string>
-    <string name="tile_description">แทรกเฟรม: %1$s</string>
-    <string name="error_blocked">ระบบไม่ยอมรับค่าที่เขียน (ค่าถูกรีเซ็ตทันที)</string>
-    <string name="profile_channel">แทรกเฟรมอัตโนมัติ</string>
-    <string name="profile_title">แทรกเฟรมอัตโนมัติ</string>
-    <string name="profile_waiting">ปิดอยู่</string>
+    <string name="tile_label">Frame gen</string>
+    <string name="tile_label_off">Frame gen off</string>
+    <string name="tile_label_custom">Frame gen on</string>
+    <string name="tile_label_setup">Setup needed</string>
+    <string name="tile_subtitle_on">Frame gen on</string>
+    <string name="tile_subtitle_off">Tap to turn on</string>
+    <string name="tile_setup_needed">Tap to set up</string>
+    <string name="tile_custom">Set by system</string>
+    <string name="tile_state_on">On, %1$s</string>
+    <string name="tile_state_off">Off</string>
+    <string name="tile_description">Frame generation: %1$s</string>
+    <string name="error_blocked">The system rejected the value (it was reset right away)</string>
+    <string name="profile_channel">Automatic frame generation</string>
+    <string name="profile_title">Automatic frame generation</string>
+    <string name="profile_waiting">Off</string>
     <string name="profile_active">%1$s · %2$s</string>
 </resources>

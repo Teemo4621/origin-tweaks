@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/gen/app_localizations.dart';
 import '../models/preset.dart';
 
 class PresetGrid extends StatelessWidget {
@@ -53,19 +54,20 @@ class _PresetTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final fg = selected ? scheme.onPrimaryContainer : scheme.onSurface;
     final radius = BorderRadius.circular(20);
 
     final Widget? badge = switch (preset) {
       Preset.off => null,
       _ when preset.tested => _Badge(
-          label: 'ทดสอบแล้ว',
+          label: l10n.badgeTested,
           icon: Icons.verified,
           background: scheme.primary,
           foreground: scheme.onPrimary,
         ),
       _ => _Badge(
-          label: 'ยังไม่ทดสอบ',
+          label: l10n.badgeUntested,
           icon: Icons.science_outlined,
           background: scheme.surfaceContainerHighest,
           foreground: scheme.onSurfaceVariant,
@@ -122,7 +124,7 @@ class _PresetTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      preset.label,
+                      preset.label(l10n),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: text.titleLarge?.copyWith(color: fg, fontWeight: FontWeight.w600),
@@ -130,7 +132,7 @@ class _PresetTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     badge ??
                         Text(
-                          'คืนค่าเดิมทั้งหมด',
+                          l10n.presetOffCaption,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: text.labelSmall?.copyWith(color: scheme.onSurfaceVariant),

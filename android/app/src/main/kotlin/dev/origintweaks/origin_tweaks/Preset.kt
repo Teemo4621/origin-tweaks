@@ -1,7 +1,7 @@
 package dev.origintweaks.origin_tweaks
 
 enum class Preset(val id: String, val sourceFps: Int, val targetFps: Int, val label: String) {
-    OFF("off", 0, 0, "ปิด"),
+    OFF("off", 0, 0, "Off"),
     FPS90("fps90", 45, 90, "90 FPS"),
     FPS120("fps120", 60, 120, "120 FPS"),
     FPS144("fps144", 48, 144, "144 FPS");

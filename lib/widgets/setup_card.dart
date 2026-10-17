@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/gen/app_localizations.dart';
 import '../native/native_bridge.dart';
 
 class AutoSetupButton extends StatefulWidget {
@@ -22,14 +23,15 @@ class _AutoSetupButtonState extends State<AutoSetupButton> {
     if (!mounted) return;
     setState(() => _running = false);
     widget.onChanged(status);
+    final l10n = AppLocalizations.of(context);
     final String message;
     if (!status.ready) {
-      message = 'ตั้งค่าไม่สำเร็จ: ${describeSetupError(status.error)}';
+      message = l10n.autoSetupFailed(describeSetupError(l10n, status.error));
     } else if (!status.usageAccess) {
-      message = 'เหลืออีกขั้นเดียว: เปิดสวิตช์ Usage access ให้ Origin Tweaks';
+      message = l10n.autoSetupUsageLeft;
       await NativeBridge.openUsageAccessSettings();
     } else {
-      message = 'ตั้งค่าเสร็จแล้ว ใช้งานได้เลย (ปิด Shizuku ได้)';
+      message = l10n.autoSetupDone;
     }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
@@ -37,6 +39,7 @@ class _AutoSetupButtonState extends State<AutoSetupButton> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SizedBox(
       width: double.infinity,
       child: FilledButton.icon(
@@ -49,18 +52,18 @@ class _AutoSetupButtonState extends State<AutoSetupButton> {
                 ),
               )
             : const Icon(Icons.auto_fix_high),
-        label: Text(_running ? 'กำลังตั้งค่า…' : 'ตั้งค่าอัตโนมัติ'),
+        label: Text(_running ? l10n.autoSetupRunning : l10n.autoSetup),
         onPressed: widget.status.shizukuUsable && !_running ? _run : null,
       ),
     );
   }
 }
 
-String describeSetupError(String? error) {
-  if (error == null) return 'ไม่ทราบสาเหตุ';
-  if (error == 'shizuku') return 'Shizuku ยังไม่พร้อม';
-  if (error == 'secure') return 'ให้สิทธิ์ WRITE_SECURE_SETTINGS ไม่ได้';
-  if (error.startsWith('helper')) return 'ติดตั้งตัวช่วยไม่ได้ ($error)';
+String describeSetupError(AppLocalizations l10n, String? error) {
+  if (error == null) return l10n.setupErrorUnknown;
+  if (error == 'shizuku') return l10n.setupErrorShizuku;
+  if (error == 'secure') return l10n.setupErrorSecure;
+  if (error.startsWith('helper')) return l10n.setupErrorHelper(error);
   return error;
 }
 
@@ -74,6 +77,7 @@ class SetupCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final done = status.doneCount;
     const total = SetupStatus.totalSteps;
 
@@ -86,7 +90,7 @@ class SetupCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(status.complete ? 'ตั้งค่าครบแล้ว' : 'ตั้งค่าครั้งแรก', style: text.titleMedium),
+                  child: Text(status.complete ? l10n.setupComplete : l10n.setupFirstTime, style: text.titleMedium),
                 ),
                 Text('$done/$total', style: text.labelLarge?.copyWith(color: scheme.primary)),
               ],
@@ -109,29 +113,29 @@ class SetupCard extends StatelessWidget {
             _Item(
               done: status.helper,
               required: true,
-              label: 'ติดตั้งตัวช่วย (Origin Tweaks Helper)',
-              detail: 'ใช้เขียนค่าระบบของแทรกเฟรม',
+              label: l10n.setupHelper,
+              detail: l10n.setupHelperDetail,
             ),
             _Item(
               done: status.secureSettings,
               required: true,
-              label: 'สิทธิ์ WRITE_SECURE_SETTINGS',
-              detail: 'จำเป็นสำหรับเปิด/ปิดแทรกเฟรม',
+              label: l10n.setupSecure,
+              detail: l10n.setupSecureDetail,
             ),
             _Item(
               done: status.usageAccess,
-              label: 'Usage access (สำหรับ Profile รายเกม)',
+              label: l10n.setupUsage,
               detail: status.ready && !status.usageAccess
-                  ? 'ระบบไม่ให้ตั้งอัตโนมัติ กดเปิดแล้วเปิดสวิตช์ให้ Origin Tweaks'
-                  : 'ใช้ตรวจว่าตอนนี้เปิดเกมอะไรอยู่',
+                  ? l10n.setupUsageManual
+                  : l10n.usageAccessPurpose,
               action: status.usageAccess
                   ? null
-                  : TextButton(onPressed: NativeBridge.openUsageAccessSettings, child: const Text('เปิด')),
+                  : TextButton(onPressed: NativeBridge.openUsageAccessSettings, child: Text(l10n.open)),
             ),
             _Item(
               done: status.battery,
-              label: 'ยกเว้นการประหยัดแบต',
-              detail: 'ให้ Profile รายเกมทำงานเบื้องหลังได้ต่อเนื่อง',
+              label: l10n.setupBattery,
+              detail: l10n.setupBatteryDetail,
             ),
             if (!status.complete) ...[
               const SizedBox(height: 16),
@@ -140,7 +144,7 @@ class SetupCard extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
-                    'เปิด Shizuku ก่อน (ใช้แค่ตอนตั้งค่าครั้งนี้)',
+                    l10n.setupStartShizukuFirst,
                     style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
                   ),
                 ),
@@ -202,7 +206,7 @@ class _Item extends StatelessWidget {
                 color: scheme.tertiaryContainer,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text('จำเป็น', style: text.labelSmall?.copyWith(color: scheme.onTertiaryContainer)),
+              child: Text(AppLocalizations.of(context).requiredBadge, style: text.labelSmall?.copyWith(color: scheme.onTertiaryContainer)),
             ),
           ?action,
         ],

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/gen/app_localizations.dart';
 import '../models/preset.dart';
 import '../native/native_bridge.dart';
 import '../widgets/info_card.dart';
@@ -90,6 +91,7 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final visible = filterApps(_apps, _query);
     final games = visible.where((a) => a.isGame).toList();
     final others = visible.where((a) => !a.isGame).toList();
@@ -116,10 +118,10 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('ตั้ง FPS แยกแต่ละเกม', style: text.titleMedium),
+                                Text(l10n.profilesHeaderTitle, style: text.titleMedium),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'เปิดเกมที่ตั้งไว้ → ใช้ FPS ของเกมนั้น · ออกจากเกม → คืนค่าเดิม',
+                                  l10n.profilesHeaderBody,
                                   style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
                                 ),
                               ],
@@ -131,10 +133,10 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
                     Divider(height: 1, indent: 16, endIndent: 16, color: scheme.outlineVariant),
                     SwitchListTile(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      title: const Text('เปิดใช้ Profile รายเกม'),
+                      title: Text(l10n.profilesEnable),
                       subtitle: Text(_serviceEnabled
-                          ? (configured == 0 ? 'ยังไม่ได้ตั้งแอปไหน เลือก FPS ด้านล่าง' : 'ตั้งไว้ $configured แอป')
-                          : 'ปิดอยู่ ใช้ค่าจากปุ่มลัดกับทุกเกม'),
+                          ? (configured == 0 ? l10n.profilesNoneConfigured : l10n.profilesConfiguredCount(configured))
+                          : l10n.profilesServiceOff),
                       value: _serviceEnabled,
                       onChanged: _setService,
                     ),
@@ -148,12 +150,12 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
                   color: scheme.tertiaryContainer,
                   iconBackground: scheme.tertiary,
                   iconForeground: scheme.onTertiary,
-                  title: 'ต้องให้สิทธิ์ Usage access',
-                  body: 'ใช้ตรวจว่าตอนนี้เปิดเกมอะไรอยู่',
+                  title: l10n.usageAccessRequired,
+                  body: l10n.usageAccessPurpose,
                   children: [
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: FilledButton(onPressed: _grantUsageAccess, child: const Text('ให้สิทธิ์')),
+                      child: FilledButton(onPressed: _grantUsageAccess, child: Text(l10n.grant)),
                     ),
                   ],
                 ),
@@ -168,7 +170,7 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
             background: scheme.surface,
             child: SearchBar(
               controller: _search,
-              hintText: 'ค้นหาแอป/เกม',
+              hintText: l10n.searchAppsHint,
               elevation: const WidgetStatePropertyAll(0),
               backgroundColor: WidgetStatePropertyAll(scheme.surfaceContainerHigh),
               padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16)),
@@ -176,7 +178,7 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
               trailing: [
                 if (_query.isNotEmpty)
                   IconButton(
-                    tooltip: 'ล้าง',
+                    tooltip: l10n.clear,
                     icon: const Icon(Icons.close),
                     onPressed: () {
                       _search.clear();
@@ -189,25 +191,25 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
           ),
         ),
         if (_loading)
-          const SliverFillRemaining(
+          SliverFillRemaining(
             hasScrollBody: false,
-            child: _Placeholder(icon: null, text: 'กำลังโหลดรายการแอป…'),
+            child: _Placeholder(icon: null, text: l10n.loadingApps),
           )
         else if (visible.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,
             child: _Placeholder(
               icon: Icons.search_off,
-              text: _query.isEmpty ? 'ไม่พบแอปในเครื่อง' : 'ไม่พบแอปที่ตรงกับ "$_query"',
+              text: _query.isEmpty ? l10n.noAppsFound : l10n.noAppsMatch(_query),
             ),
           )
         else ...[
           if (games.isNotEmpty) ...[
-            _SectionHeader(label: 'เกม', count: games.length),
+            _SectionHeader(label: l10n.sectionGames, count: games.length),
             _AppList(apps: games, profiles: _profiles, onChanged: _setProfile),
           ],
           if (others.isNotEmpty) ...[
-            _SectionHeader(label: 'แอปอื่น', count: others.length),
+            _SectionHeader(label: l10n.sectionOtherApps, count: others.length),
             _AppList(apps: others, profiles: _profiles, onChanged: _setProfile),
           ],
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
@@ -338,12 +340,13 @@ class _PresetMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final set = value != null;
 
     Widget item(Preset? preset) => MenuItemButton(
           leadingIcon: Icon(value == preset ? Icons.check : null, size: 18),
           onPressed: () => onSelected(preset),
-          child: Text(preset?.label ?? 'ไม่ตั้ง'),
+          child: Text(preset?.label(l10n) ?? l10n.profileNotSet),
         );
 
     return MenuAnchor(
@@ -364,7 +367,7 @@ class _PresetMenu extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  value?.label ?? 'ไม่ตั้ง',
+                  value?.label(l10n) ?? l10n.profileNotSet,
                   style: text.labelLarge?.copyWith(
                     color: set ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'l10n/gen/app_localizations.dart';
 import 'screens/home_screen.dart';
 import 'screens/profiles_screen.dart';
 import 'screens/setup_screen.dart';
@@ -43,12 +44,17 @@ ThemeData buildTheme(Brightness brightness) {
 }
 
 class OriginTweaksApp extends StatelessWidget {
-  const OriginTweaksApp({super.key});
+  const OriginTweaksApp({super.key, this.locale});
+
+  final Locale? locale;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Origin Tweaks',
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       debugShowCheckedModeBanner: false,
       theme: buildTheme(Brightness.light),
       darkTheme: buildTheme(Brightness.dark),
@@ -67,8 +73,6 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   final _refresh = ValueNotifier<int>(0);
   int _index = 0;
-
-  static const _titles = ['Origin Tweaks', 'Profile รายเกม', 'ตั้งค่าเริ่มต้น'];
 
   @override
   void initState() {
@@ -96,8 +100,10 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final titles = [l10n.appTitle, l10n.titleProfiles, l10n.titleSetup];
     return Scaffold(
-      appBar: AppBar(title: Text(_titles[_index])),
+      appBar: AppBar(title: Text(titles[_index])),
       body: IndexedStack(
         index: _index,
         children: [
@@ -109,21 +115,21 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: _select,
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.auto_awesome_motion_outlined),
-            selectedIcon: Icon(Icons.auto_awesome_motion),
-            label: 'แทรกเฟรม',
+            icon: const Icon(Icons.auto_awesome_motion_outlined),
+            selectedIcon: const Icon(Icons.auto_awesome_motion),
+            label: l10n.navFrameGen,
           ),
           NavigationDestination(
-            icon: Icon(Icons.sports_esports_outlined),
-            selectedIcon: Icon(Icons.sports_esports),
-            label: 'Profile',
+            icon: const Icon(Icons.sports_esports_outlined),
+            selectedIcon: const Icon(Icons.sports_esports),
+            label: l10n.navProfiles,
           ),
           NavigationDestination(
-            icon: Icon(Icons.checklist_outlined),
-            selectedIcon: Icon(Icons.checklist),
-            label: 'ตั้งค่า',
+            icon: const Icon(Icons.checklist_outlined),
+            selectedIcon: const Icon(Icons.checklist),
+            label: l10n.navSetup,
           ),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/gen/app_localizations.dart';
 import '../models/preset.dart';
 
 class StatusHero extends StatelessWidget {
@@ -13,6 +14,7 @@ class StatusHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final preset = current.effective;
     final active = preset?.enabled ?? false;
     final custom = current.isCustom;
@@ -20,12 +22,12 @@ class StatusHero extends StatelessWidget {
     final muted = active ? scheme.onPrimary.withValues(alpha: 0.8) : scheme.onSurfaceVariant;
 
     final (pill, caption) = !loaded
-        ? ('กำลังโหลด', 'กำลังอ่านค่าจากระบบ…')
+        ? (l10n.heroLoading, l10n.heroLoadingCaption)
         : active
-            ? ('ทำงานอยู่', 'MEMC, super resolution และเป้า FPS ของ GameWatch เปิดพร้อมกัน')
+            ? (l10n.heroActive, l10n.heroActiveCaption)
             : custom
-                ? ('ค่าจากระบบ', 'ค่านี้ถูกตั้งโดย GameCube หรือแอปอื่น เลือก preset ด้านล่างเพื่อแทนที่')
-                : ('ปิดอยู่', 'เลือก FPS ด้านล่างเพื่อเปิดแทรกเฟรมกับทุกเกม');
+                ? (l10n.heroCustom, l10n.heroCustomCaption)
+                : (l10n.heroOff, l10n.heroOffCaption);
 
     final Widget headline;
     if (!loaded) {
@@ -43,10 +45,10 @@ class StatusHero extends StatelessWidget {
         ],
       );
     } else if (custom) {
-      headline = Text('ค่าจากระบบ',
+      headline = Text(l10n.heroCustom,
           key: const ValueKey('custom'), style: text.headlineLarge?.copyWith(color: fg, fontWeight: FontWeight.w600));
     } else {
-      headline = Text('ปิด',
+      headline = Text(l10n.presetOff,
           key: const ValueKey('off'), style: text.displayMedium?.copyWith(color: fg, fontWeight: FontWeight.w600));
     }
 
@@ -74,7 +76,7 @@ class StatusHero extends StatelessWidget {
               children: [
                 Icon(Icons.auto_awesome_motion, color: fg, size: 22),
                 const SizedBox(width: 8),
-                Expanded(child: Text('แทรกเฟรม · ทุกเกม', style: text.titleMedium?.copyWith(color: fg))),
+                Expanded(child: Text(l10n.heroTitle, style: text.titleMedium?.copyWith(color: fg))),
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
