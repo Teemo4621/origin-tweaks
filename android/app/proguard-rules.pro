@@ -1,0 +1,3 @@
+-keep class dev.origintweaks.origin_tweaks.ShellUserService { *; }
+-keep class dev.origintweaks.origin_tweaks.IShellService { *; }
+-keep class dev.origintweaks.origin_tweaks.IShellService$* { *; }
