@@ -38,9 +38,13 @@ class ProfileService : Service() {
 
     private val applyTarget = Runnable { apply() }
 
+    private val verifyTarget = Runnable { verify("foreground") }
+    private val verifyTargetLate = Runnable { verify("foreground-late") }
+
     private val settingObserver = object : ContentObserver(handler) {
         override fun onChange(selfChange: Boolean) {
-            onSettingChanged()
+            Log.i(TAG, "interpolation setting changed")
+            verify("observer")
         }
     }
 
@@ -95,8 +99,11 @@ class ProfileService : Service() {
         }
         if (latest != null && latest != foregroundPackage) {
             foregroundPackage = latest
-
             reevaluate(delayMs = APPLY_DELAY_MS)
+            handler.removeCallbacks(verifyTarget)
+            handler.removeCallbacks(verifyTargetLate)
+            handler.postDelayed(verifyTarget, APPLY_DELAY_MS + VERIFY_DELAY_MS)
+            handler.postDelayed(verifyTargetLate, LATE_VERIFY_DELAY_MS)
         }
     }
 
@@ -114,10 +121,11 @@ class ProfileService : Service() {
         ShizukuBridge.applyPreset(target) { result -> updateNotification(result) }
     }
 
-    private fun onSettingChanged() {
+    private fun verify(reason: String) {
         if (!target.enabled) return
         ShizukuBridge.readCurrent { value ->
             if (!target.enabled || Preset.fromValue(value) == target) return@readCurrent
+            Log.i(TAG, "re-applying $target ($reason): found $value")
             val now = SystemClock.elapsedRealtime()
             handler.removeCallbacks(applyTarget)
             if (now - lastReapply < REAPPLY_MIN_INTERVAL_MS) {
@@ -184,6 +192,8 @@ class ProfileService : Service() {
         private const val POLL_INTERVAL_MS = 1000L
         private const val INITIAL_LOOKBACK_MS = 60_000L
         private const val APPLY_DELAY_MS = 1500L
+        private const val VERIFY_DELAY_MS = 500L
+        private const val LATE_VERIFY_DELAY_MS = 5000L
         private const val REAPPLY_MIN_INTERVAL_MS = 1000L
 
         fun sync(context: Context) {
