@@ -10,6 +10,7 @@ import 'package:origin_tweaks/screens/profiles_screen.dart';
 import 'package:origin_tweaks/screens/setup_screen.dart';
 import 'package:origin_tweaks/widgets/preset_grid.dart';
 import 'package:origin_tweaks/widgets/status_hero.dart';
+import 'package:origin_tweaks/widgets/super_res_card.dart';
 
 const _th = Locale('th');
 const _en = Locale('en');
@@ -205,5 +206,26 @@ void main() {
     final setupScroll = find.descendant(of: find.byType(SetupScreen), matching: find.byType(Scrollable)).first;
     await tester.scrollUntilVisible(find.text('Limitations'), 200, scrollable: setupScroll);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('super resolution card shows levels in both languages and reports taps', (tester) async {
+    int? picked;
+    await tester.pumpWidget(_localized(
+      Scaffold(body: SuperResCard(level: 0, enabled: true, busy: false, onChanged: (v) => picked = v)),
+      locale: _en,
+    ));
+    expect(find.text('Super resolution'), findsOneWidget);
+    expect(find.text('Experimental'), findsOneWidget);
+    await tester.tap(find.text('Extreme'));
+    expect(picked, 2);
+
+    await tester.pumpWidget(_localized(
+      Scaffold(body: SuperResCard(level: 1, enabled: false, busy: false, onChanged: (v) => picked = v)),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('เพิ่มความละเอียด'), findsOneWidget);
+    picked = null;
+    await tester.tap(find.text('สูงสุด'));
+    expect(picked, isNull);
   });
 }

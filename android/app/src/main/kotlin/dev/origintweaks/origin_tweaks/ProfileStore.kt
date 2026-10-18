@@ -33,6 +33,14 @@ class ProfileStore(context: Context) {
         get() = prefs.getString(KEY_SAVED_SETTINGS, null)?.let { decodeValues(it) }
         set(value) = prefs.edit().putString(KEY_SAVED_SETTINGS, value?.let { encodeValues(it) }).apply()
 
+    var superResLevel: Int
+        get() = prefs.getInt(KEY_SUPER_RES_LEVEL, 0)
+        set(value) = prefs.edit().putInt(KEY_SUPER_RES_LEVEL, value).apply()
+
+    var savedSuperRes: String?
+        get() = prefs.getString(KEY_SAVED_SUPER_RES, null)
+        set(value) = prefs.edit().putString(KEY_SAVED_SUPER_RES, value).apply()
+
     val needsService: Boolean
         get() = profileServiceEnabled || manualPreset.enabled
 
@@ -42,6 +50,8 @@ class ProfileStore(context: Context) {
         private const val KEY_SERVICE_ENABLED = "profile_service_enabled"
         private const val KEY_PROFILES = "profiles"
         private const val KEY_SAVED_SETTINGS = "saved_settings"
+        private const val KEY_SUPER_RES_LEVEL = "super_res_level"
+        private const val KEY_SAVED_SUPER_RES = "saved_super_res"
 
         fun encodeValues(values: Map<String, String>): String =
             values.entries.sortedBy { it.key }.joinToString("\n") { "${it.key}=${it.value}" }

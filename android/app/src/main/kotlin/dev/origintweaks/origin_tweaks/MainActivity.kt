@@ -53,6 +53,10 @@ class MainActivity : FlutterActivity() {
                 }
             }
             "getManualPreset" -> result.success(store.manualPreset.id)
+            "getSuperRes" -> ShizukuBridge.readSuperRes { value ->
+                result.success(mapOf("level" to store.superResLevel, "value" to value))
+            }
+            "setSuperRes" -> ShizukuBridge.applySuperRes(call.argument<Int>("level") ?: -1) { result.success(it) }
             "getSetupStatus" -> result.success(ShizukuBridge.setupStatus())
             "autoSetup" -> ShizukuBridge.autoSetup { status ->
                 ProfileService.sync(this)

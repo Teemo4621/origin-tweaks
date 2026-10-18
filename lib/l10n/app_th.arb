@@ -100,5 +100,13 @@
   "heroCustom": "ค่าจากระบบ",
   "heroCustomCaption": "ค่านี้ถูกตั้งโดย GameCube หรือแอปอื่น เลือก preset ด้านล่างเพื่อแทนที่",
   "heroOff": "ปิดอยู่",
-  "heroOffCaption": "เลือก FPS ด้านล่างเพื่อเปิดแทรกเฟรมกับทุกเกม"
+  "heroOffCaption": "เลือก FPS ด้านล่างเพื่อเปิดแทรกเฟรมกับทุกเกม",
+  "superResTitle": "เพิ่มความละเอียด",
+  "superResExperimental": "ทดลอง",
+  "superResBody": "สั่งให้ชิปภาพขยายความละเอียดเกม (ผ่าน GameWatch) อาจไม่ได้ผลทุกเกม และระบบจะปิดเองเมื่อเครื่องร้อน",
+  "superResOff": "ปิด",
+  "superResHigh": "สูง",
+  "superResExtreme": "สูงสุด",
+  "superResEnabled": "ตั้งเพิ่มความละเอียดเป็น {level} แล้ว",
+  "superResDisabled": "ปิดเพิ่มความละเอียดแล้ว"
 }

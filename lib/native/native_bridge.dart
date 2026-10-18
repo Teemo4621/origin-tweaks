@@ -85,6 +85,14 @@ class NativeBridge {
   static Future<ApplyResult> applyPreset(Preset preset) async =>
       ApplyResult.fromCode(await _channel.invokeMethod<int>('applyPreset', {'id': preset.id}));
 
+  static Future<int> superResLevel() async {
+    final map = await _channel.invokeMapMethod<String, Object?>('getSuperRes') ?? const {};
+    return map['level'] as int? ?? 0;
+  }
+
+  static Future<ApplyResult> setSuperRes(int level) async =>
+      ApplyResult.fromCode(await _channel.invokeMethod<int>('setSuperRes', {'level': level}));
+
   static Future<SetupStatus> setupStatus() async =>
       SetupStatus.fromMap(await _channel.invokeMapMethod<String, Object?>('getSetupStatus') ?? const {});
 

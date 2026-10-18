@@ -149,5 +149,20 @@
   "heroCustom": "System value",
   "heroCustomCaption": "Set by GameCube or another app. Pick a preset below to override it",
   "heroOff": "Off",
-  "heroOffCaption": "Pick an FPS below to enable frame generation for all games"
+  "heroOffCaption": "Pick an FPS below to enable frame generation for all games",
+  "superResTitle": "Super resolution",
+  "superResExperimental": "Experimental",
+  "superResBody": "Asks the display chip to upscale games (GameWatch). May not work in every game, and turns itself off when the phone gets hot.",
+  "superResOff": "Off",
+  "superResHigh": "High",
+  "superResExtreme": "Extreme",
+  "superResEnabled": "Super resolution set to {level}",
+  "@superResEnabled": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "superResDisabled": "Super resolution turned off"
 }

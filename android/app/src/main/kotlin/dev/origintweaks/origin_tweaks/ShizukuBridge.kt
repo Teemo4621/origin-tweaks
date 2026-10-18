@@ -98,6 +98,21 @@ object ShizukuBridge {
         }
     }
 
+    fun applySuperRes(level: Int, onDone: (Int) -> Unit) {
+        executor.execute {
+            val result = FrameGen.applySuperRes(appContext, level)
+            if (result != FrameGen.RESULT_OK) Log.w(TAG, "super resolution $level failed: $result")
+            mainHandler.post { onDone(result) }
+        }
+    }
+
+    fun readSuperRes(onDone: (String?) -> Unit) {
+        executor.execute {
+            val value = FrameGen.readSuperRes(appContext)
+            mainHandler.post { onDone(value) }
+        }
+    }
+
     fun readCurrent(onDone: (String?) -> Unit) {
         executor.execute {
             val value = FrameGen.readInterpolation(appContext)
