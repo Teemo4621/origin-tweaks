@@ -7,7 +7,6 @@ import '../widgets/info_card.dart';
 import '../widgets/onboarding_card.dart';
 import '../widgets/preset_grid.dart';
 import '../widgets/status_hero.dart';
-import '../widgets/super_res_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.refresh, this.onOpenSetup});
@@ -24,8 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
   CurrentSetting _current = const CurrentSetting();
   bool _loaded = false;
   Preset? _pending;
-  int _superRes = 0;
-  bool _superResBusy = false;
 
   @override
   void initState() {
@@ -43,12 +40,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _load() async {
     final status = await NativeBridge.setupStatus();
     final current = await NativeBridge.current();
-    final superRes = await NativeBridge.superResLevel();
     if (!mounted) return;
     setState(() {
       _status = status;
       _current = current;
-      _superRes = superRes;
       _loaded = true;
     });
   }
@@ -70,26 +65,6 @@ class _HomeScreenState extends State<HomeScreen> {
               : SnackBarAction(label: l10n.actionSetup, onPressed: widget.onOpenSetup!)
           : null,
     ));
-  }
-
-  Future<void> _applySuperRes(int level) async {
-    setState(() => _superResBusy = true);
-    final result = await NativeBridge.setSuperRes(level);
-    await _load();
-    if (!mounted) return;
-    setState(() => _superResBusy = false);
-    final l10n = AppLocalizations.of(context);
-    final message = switch (result) {
-      ApplyResult.ok => level > 0
-          ? l10n.superResEnabled(SuperResCard.levelLabel(l10n, level))
-          : l10n.superResDisabled,
-      ApplyResult.blocked => l10n.applyBlocked,
-      ApplyResult.noPermission || ApplyResult.noHelper => l10n.applyNotSetUp,
-      ApplyResult.failed => l10n.applyFailed,
-    };
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -147,13 +122,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          SuperResCard(
-            level: _superRes,
-            enabled: _status.secureSettings,
-            busy: _superResBusy,
-            onChanged: _applySuperRes,
-          ),
-          const SizedBox(height: 16),
           InfoCard(
             icon: Icons.dashboard_customize_outlined,
             title: l10n.tileCardTitle,
