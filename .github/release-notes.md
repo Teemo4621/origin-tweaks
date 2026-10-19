@@ -5,11 +5,17 @@
 
 ## มีอะไรใหม่ / What's new
 
-- **อัปเดตในแอป** เปิดแอปแล้วจะเช็กเวอร์ชันใหม่ให้เอง กด **อัปเดต** เพื่อดาวน์โหลดและติดตั้ง (ครั้งแรกต้องอนุญาต "ติดตั้งแอปที่ไม่รู้จัก") · **In-app updates**: the app checks for new releases and installs them through the system installer
-- **ทดลอง:** แทรกเฟรมเปลี่ยนไปเขียน `gamecube_frame_interpolation_for_sr` (`1:1::48:144`) ซึ่ง GameCube ไม่เขียนทับตอนเข้าเกม · **Experimental:** frame generation now writes `gamecube_frame_interpolation_for_sr`
+- **หน้าตาใหม่ทั้งแอป** ธีมมืด ตัวเลข FPS ใหญ่ เลือก FPS ได้ในแตะเดียว หน้ารายเกมมีตัวกรอง · **New look**: dark instrument-panel UI, one-tap FPS selector, filters on the per-game screen
+- **เครื่องมือทดลอง** ภาพคมชัด Hawk-eye, สัมผัสไวสูงสุด และ Monster+ แตะเพื่อดูค่าจริงในเครื่อง · **Experimental tools**: Hawk-eye display, max touch response and Monster+, with live device values
+- **ปุ่ม Monster+ ใน panel** · **Monster+ Quick Settings tile**
+- **เตือนเมื่อเครื่องร้อน** ใช้สถานะความร้อนจากระบบ · **Heat warning** from the system thermal status
+- ไอคอนแอปพื้นหลังใหม่ให้เข้ากับธีม · New icon background to match the theme
 
 > [!IMPORTANT]
-> ตัวช่วย (Helper) อัปเป็นเวอร์ชัน 2 หลังอัปเดตให้เปิด Shizuku แล้วกด **ตั้งค่าอัตโนมัติ** อีกครั้ง และควร **ปิดแทรกเฟรมในเวอร์ชันเก่าก่อนอัปเดต** · The helper was updated: run **Auto setup** again with Shizuku, and turn frame generation off in the old version before updating.
+> ตัวช่วย (Helper) อัปเป็นเวอร์ชัน 4 หลังอัปเดตให้เปิด Shizuku แล้วกด **ตั้งค่าอัตโนมัติ** อีกครั้ง · The helper is now version 4: run **Auto setup** again with Shizuku after updating.
+
+> [!WARNING]
+> Monster+ เป็นการทดลอง เครื่องนี้ไม่รองรับ Monster+ จริง และอาจทำให้เครื่องร้อนจนระบบลดรอบจอ · Monster+ is experimental, not the real mode, and can make the phone hot enough to cap the refresh rate.
 
 ## ติดตั้ง
 

@@ -30,6 +30,7 @@ Quick Settings tile · Force 144 FPS in any game · Per-game profiles · Restore
 |  **Overwrite protection** | If GameCube resets the values when a game starts, the app sets them back |
 |  **Full restore** | Every original value is saved before turning on and restored when turning off |
 |  **Auto setup** | One tap through Shizuku, once. Shizuku isn't needed after that |
+|  **Experimental tools** | Hawk-eye display, max touch response and Monster+ (with its own tile). Shows the live device values and warns when the phone is hot |
 |  **In-app updates** | Checks GitHub Releases when the app opens. Tap Update to download, verify the SHA-256 and open the system installer |
 
 > [!NOTE]
@@ -77,7 +78,7 @@ flowchart LR
 ```
 
 - **Origin Tweaks** (main app) is a regular app that installs normally and provides the UI, the tile and profiles
-- **Origin Tweaks Helper** is bundled inside the main app and installed automatically through Shizuku (`pm install --bypass-low-target-sdk-block`). It has no icon, only accepts calls from an app signed with the same key, and can change only 7 specific keys
+- **Origin Tweaks Helper** is bundled inside the main app and installed automatically through Shizuku (`pm install --bypass-low-target-sdk-block`). It has no icon, only accepts calls from an app signed with the same key, and can change only 11 specific keys
 
 <details>
 <summary><b>Values written when turning on 144 FPS</b></summary>
