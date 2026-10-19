@@ -193,5 +193,105 @@
   "updateCheck": "Check for updates",
   "updateChecking": "Checking for updates…",
   "updateUpToDate": "You're on the latest version",
-  "updateCheckFailed": "Couldn't check for updates"
+  "updateCheckFailed": "Couldn't check for updates",
+  "monsterPlusTitle": "Monster+",
+  "monsterPlusBody": "Writes the value Monster+ and turns on fixed performance mode, so this is for testing only.",
+  "hawkeyeTitle": "Hawk-eye display",
+  "hawkeyeBody": "Turns on GameCube's Hawk-eye display enhancement (local tone mapping and game colour mode) for the app on screen. GameCube may switch it off when the phone is hot; the app turns it back on.",
+  "touchBoostTitle": "Max touch response",
+  "touchBoostBody": "Sets the touch driver's sensitivity, swipe follow and accuracy to GameCube's \"Sensitive\" level (0,5,5,5). GameCube resets it when a game starts; the app sets it back.",
+  "tweakEnabled": "{name} turned on",
+  "@tweakEnabled": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tweakDisabled": "{name} turned off and values restored",
+  "@tweakDisabled": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tweakOverwritten": "The system changed some values back",
+  "statusReady": "Ready",
+  "statusNotReady": "Not ready",
+  "toolsTitle": "Experimental tools",
+  "toolsHint": "Tap for device values",
+  "hawkeyeShort": "Game colour mode + tone mapping",
+  "touchBoostShort": "GameCube \"Sensitive\" level",
+  "monsterPlusShort": "Simulated Monster+ values · not the real mode",
+  "heatTag": "Runs hot",
+  "tweakStateOn": "On",
+  "tweakStateOff": "Off",
+  "liveValuesTitle": "Values on the device now",
+  "liveValuesHint": "Read when this sheet opened",
+  "liveValuesLegend": "A warning mark means the system changed that value back. Turning the switch off restores every original value.",
+  "liveValuesEmpty": "Finish setup to read the values",
+  "turnOffRestore": "Turn off and restore",
+  "done": "Done",
+  "thermalSevereTitle": "Phone is very hot",
+  "thermalCriticalTitle": "Phone is critically hot",
+  "thermalBody": "The system may lower the refresh rate and clocks. Turn Monster+ off and let the phone cool down.",
+  "setupStepOf": "Step {done} of {total}",
+  "@setupStepOf": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "setupCompleteSubtitle": "{done} of {total} done · Shizuku can stay off",
+  "@setupCompleteSubtitle": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "setupIncompleteSubtitle": "{done} of {total} done",
+  "@setupIncompleteSubtitle": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "autoSetupAgain": "Run auto setup again",
+  "filterGames": "Games",
+  "filterConfigured": "Set",
+  "filterAll": "All apps",
+  "presetFor": "FPS for {app}: {value}",
+  "@presetFor": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "updateBannerTitle": "New version {version}",
+  "@updateBannerTitle": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateBannerBody": "Downloads, checks SHA-256, then opens the installer",
+  "dismiss": "Dismiss"
 }

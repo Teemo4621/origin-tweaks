@@ -26,6 +26,15 @@ enum Preset {
         fps144 => 144,
       };
 
+  int? get sourceFps => switch (this) {
+        off => null,
+        fps90 => 45,
+        fps120 => 60,
+        fps144 => 48,
+      };
+
+  int get meterLevel => this == off ? 0 : index + 1;
+
   static Preset? fromId(String? id) {
     for (final preset in values) {
       if (preset.id == id) return preset;

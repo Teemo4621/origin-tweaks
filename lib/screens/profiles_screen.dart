@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import '../l10n/gen/app_localizations.dart';
 import '../models/preset.dart';
 import '../native/native_bridge.dart';
+import '../theme.dart';
 import '../widgets/info_card.dart';
+import '../widgets/panel.dart';
 
 class ProfilesScreen extends StatefulWidget {
   const ProfilesScreen({super.key, required this.refresh});
@@ -24,6 +26,7 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
   bool _usageAccess = true;
   bool _loading = true;
   String _query = '';
+  AppFilter? _filter;
 
   @override
   void initState() {
@@ -89,67 +92,49 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
-    final visible = filterApps(_apps, _query);
-    final games = visible.where((a) => a.isGame).toList();
-    final others = visible.where((a) => !a.isGame).toList();
+    final searched = filterApps(_apps, _query);
+    final gameCount = searched.where((a) => a.isGame).length;
+    final configuredCount = searched.where((a) => _profiles.containsKey(a.packageName)).length;
+    final filter = _filter ?? (gameCount > 0 ? AppFilter.games : AppFilter.all);
+    final visible = filterByKind(searched, filter, _profiles);
     final configured = _profiles.length;
 
     return CustomScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
+        SliverToBoxAdapter(
+          child: ScreenHeader(title: l10n.titleProfiles, subtitle: l10n.profilesHeaderBody),
+        ),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
           sliver: SliverList.list(
             children: [
-              Card(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const IconBadge(icon: Icons.sports_esports_outlined),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(l10n.profilesHeaderTitle, style: text.titleMedium),
-                                const SizedBox(height: 4),
-                                Text(
-                                  l10n.profilesHeaderBody,
-                                  style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Divider(height: 1, indent: 16, endIndent: 16, color: scheme.outlineVariant),
-                    SwitchListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      title: Text(l10n.profilesEnable),
-                      subtitle: Text(_serviceEnabled
+              Panel(
+                padding: EdgeInsets.zero,
+                radius: 18,
+                child: MergeSemantics(
+                  child: SwitchListTile(
+                    contentPadding: const EdgeInsets.fromLTRB(16, 6, 12, 6),
+                    title: Text(l10n.profilesEnable, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                    subtitle: Text(
+                      _serviceEnabled
                           ? (configured == 0 ? l10n.profilesNoneConfigured : l10n.profilesConfiguredCount(configured))
-                          : l10n.profilesServiceOff),
-                      value: _serviceEnabled,
-                      onChanged: _setService,
+                          : l10n.profilesServiceOff,
+                      style: const TextStyle(fontSize: 13, color: Palette.muted),
                     ),
-                  ],
+                    value: _serviceEnabled,
+                    onChanged: _setService,
+                  ),
                 ),
               ),
               if (!_usageAccess) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 InfoCard(
                   icon: Icons.lock_outline,
-                  color: scheme.tertiaryContainer,
-                  iconBackground: scheme.tertiary,
-                  iconForeground: scheme.onTertiary,
+                  color: Palette.heatSoft,
+                  iconBackground: Palette.heatTile,
+                  iconForeground: Palette.heat,
                   title: l10n.usageAccessRequired,
                   body: l10n.usageAccessPurpose,
                   children: [
@@ -160,33 +145,82 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
                   ],
                 ),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
             ],
           ),
         ),
         SliverPersistentHeader(
           pinned: true,
           delegate: _SearchHeader(
-            background: scheme.surface,
-            child: SearchBar(
-              controller: _search,
-              hintText: l10n.searchAppsHint,
-              elevation: const WidgetStatePropertyAll(0),
-              backgroundColor: WidgetStatePropertyAll(scheme.surfaceContainerHigh),
-              padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16)),
-              leading: Icon(Icons.search, color: scheme.onSurfaceVariant),
-              trailing: [
-                if (_query.isNotEmpty)
-                  IconButton(
-                    tooltip: l10n.clear,
-                    icon: const Icon(Icons.close),
-                    onPressed: () {
-                      _search.clear();
-                      setState(() => _query = '');
-                    },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: 48,
+                  child: TextField(
+                    controller: _search,
+                    onChanged: (value) => setState(() => _query = value),
+                    style: const TextStyle(fontSize: 15),
+                    decoration: InputDecoration(
+                      hintText: l10n.searchAppsHint,
+                      hintStyle: const TextStyle(color: Color(0xFF8C9299)),
+                      prefixIcon: const Icon(Icons.search, size: 20, color: Palette.muted),
+                      suffixIcon: _query.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: l10n.clear,
+                              icon: const Icon(Icons.close, size: 20),
+                              onPressed: () {
+                                _search.clear();
+                                setState(() => _query = '');
+                              },
+                            ),
+                      filled: true,
+                      fillColor: Palette.surface,
+                      contentPadding: EdgeInsets.zero,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Palette.line),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Palette.line),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Palette.accent),
+                      ),
+                    ),
                   ),
+                ),
+                const SizedBox(height: 10),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _FilterChip(
+                        label: l10n.filterGames,
+                        count: gameCount,
+                        selected: filter == AppFilter.games,
+                        onTap: () => setState(() => _filter = AppFilter.games),
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: l10n.filterConfigured,
+                        count: configuredCount,
+                        selected: filter == AppFilter.configured,
+                        onTap: () => setState(() => _filter = AppFilter.configured),
+                      ),
+                      const SizedBox(width: 8),
+                      _FilterChip(
+                        label: l10n.filterAll,
+                        selected: filter == AppFilter.all,
+                        onTap: () => setState(() => _filter = AppFilter.all),
+                      ),
+                    ],
+                  ),
+                ),
               ],
-              onChanged: (value) => setState(() => _query = value),
             ),
           ),
         ),
@@ -204,20 +238,21 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
             ),
           )
         else ...[
-          if (games.isNotEmpty) ...[
-            _SectionHeader(label: l10n.sectionGames, count: games.length),
-            _AppList(apps: games, profiles: _profiles, onChanged: _setProfile),
-          ],
-          if (others.isNotEmpty) ...[
-            _SectionHeader(label: l10n.sectionOtherApps, count: others.length),
-            _AppList(apps: others, profiles: _profiles, onChanged: _setProfile),
-          ],
+          _AppList(apps: visible, profiles: _profiles, onChanged: _setProfile),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ],
     );
   }
 }
+
+enum AppFilter { games, configured, all }
+
+List<AppEntry> filterByKind(List<AppEntry> apps, AppFilter filter, Map<String, Preset> profiles) => switch (filter) {
+      AppFilter.games => apps.where((a) => a.isGame).toList(),
+      AppFilter.configured => apps.where((a) => profiles.containsKey(a.packageName)).toList(),
+      AppFilter.all => apps,
+    };
 
 List<AppEntry> sortApps(Iterable<AppEntry> apps) => apps.toList()
   ..sort((a, b) {
@@ -232,12 +267,11 @@ List<AppEntry> filterApps(List<AppEntry> apps, String query) {
 }
 
 class _SearchHeader extends SliverPersistentHeaderDelegate {
-  _SearchHeader({required this.child, required this.background});
+  _SearchHeader({required this.child});
 
   final Widget child;
-  final Color background;
 
-  static const _height = 72.0;
+  static const _height = 112.0;
 
   @override
   double get minExtent => _height;
@@ -248,9 +282,9 @@ class _SearchHeader extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return ColoredBox(
-      color: background,
+      color: Palette.ground,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
         child: child,
       ),
     );
@@ -260,25 +294,51 @@ class _SearchHeader extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(_SearchHeader oldDelegate) => true;
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.label, required this.count});
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({required this.label, required this.selected, required this.onTap, this.count});
 
   final String label;
-  final int count;
+  final int? count;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-        child: Row(
-          children: [
-            Text(label, style: text.titleSmall?.copyWith(color: scheme.primary)),
-            const SizedBox(width: 8),
-            Text('$count', style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant)),
-          ],
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: selected ? Palette.text : Colors.transparent,
+        shape: StadiumBorder(side: BorderSide(color: selected ? Palette.text : Palette.line)),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 36, minWidth: 48),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                      color: selected ? Palette.ground : Palette.textSoft,
+                    ),
+                  ),
+                  if (count != null) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      '$count',
+                      style: AppText.mono.copyWith(fontSize: 13, color: selected ? Palette.ground : Palette.textSoft),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -295,56 +355,82 @@ class _AppList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      sliver: SliverList.builder(
-        itemCount: apps.length,
-        itemBuilder: (context, index) {
-          final app = apps[index];
-          final first = index == 0;
-          final last = index == apps.length - 1;
-          final radius = BorderRadius.vertical(
-            top: Radius.circular(first ? 20 : 4),
-            bottom: Radius.circular(last ? 20 : 4),
-          );
-          return Padding(
-            padding: EdgeInsets.only(bottom: last ? 0 : 2),
-            child: Material(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              borderRadius: radius,
-              clipBehavior: Clip.antiAlias,
-              child: ListTile(
-                contentPadding: const EdgeInsets.only(left: 16, right: 8),
-                leading: _AppIcon(packageName: app.packageName),
-                title: Text(app.label, maxLines: 1, overflow: TextOverflow.ellipsis),
-                subtitle: Text(app.packageName, maxLines: 1, overflow: TextOverflow.ellipsis),
-                trailing: _PresetMenu(
-                  value: profiles[app.packageName],
-                  onSelected: (preset) => onChanged(app, preset),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      sliver: DecoratedSliver(
+        decoration: BoxDecoration(
+          color: Palette.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Palette.line),
+        ),
+        sliver: SliverList.builder(
+          itemCount: apps.length,
+          itemBuilder: (context, index) {
+            final app = apps[index];
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (index > 0) const InsetDivider(indent: 68),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 68),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 10, 12, 10),
+                    child: Row(
+                      children: [
+                        _AppIcon(packageName: app.packageName),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                app.label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                              ),
+                              Text(
+                                app.packageName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppText.mono.copyWith(fontSize: 11, color: Palette.muted),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _PresetMenu(
+                          app: app.label,
+                          value: profiles[app.packageName],
+                          onSelected: (preset) => onChanged(app, preset),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 }
 
 class _PresetMenu extends StatelessWidget {
-  const _PresetMenu({required this.value, required this.onSelected});
+  const _PresetMenu({required this.app, required this.value, required this.onSelected});
 
+  final String app;
   final Preset? value;
   final ValueChanged<Preset?> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     final set = value != null;
+    final label = value?.label(l10n) ?? l10n.profileNotSet;
 
     Widget item(Preset? preset) => MenuItemButton(
-          leadingIcon: Icon(value == preset ? Icons.check : null, size: 18),
+          leadingIcon: Icon(value == preset ? Icons.check : null, size: 18, color: Palette.accent),
           onPressed: () => onSelected(preset),
           child: Text(preset?.label(l10n) ?? l10n.profileNotSet),
         );
@@ -352,28 +438,40 @@ class _PresetMenu extends StatelessWidget {
     return MenuAnchor(
       alignmentOffset: const Offset(-24, 0),
       menuChildren: [item(null), for (final preset in Preset.values) item(preset)],
-      builder: (context, controller, _) => Material(
-        color: set ? scheme.primaryContainer : Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: set ? BorderSide.none : BorderSide(color: scheme.outlineVariant),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: () => controller.isOpen ? controller.close() : controller.open(),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  value?.label(l10n) ?? l10n.profileNotSet,
-                  style: text.labelLarge?.copyWith(
-                    color: set ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
-                  ),
+      builder: (context, controller, _) => Semantics(
+        container: true,
+        button: true,
+        onTap: () => controller.isOpen ? controller.close() : controller.open(),
+        label: l10n.presetFor(app, label),
+        excludeSemantics: true,
+        child: Material(
+          color: set ? Palette.accentSoft : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: BorderSide(color: set ? Palette.accentLine : Palette.line),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: () => controller.isOpen ? controller.close() : controller.open(),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 40, minWidth: 80),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 6, 0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      label,
+                      style: AppText.heading.copyWith(
+                        fontSize: 14,
+                        color: set ? Palette.accent : Palette.textSoft,
+                      ),
+                    ),
+                    Icon(Icons.arrow_drop_down, size: 20, color: set ? Palette.accent : Palette.muted),
+                  ],
                 ),
-                Icon(Icons.arrow_drop_down, size: 20, color: set ? scheme.onPrimaryContainer : scheme.onSurfaceVariant),
-              ],
+              ),
             ),
           ),
         ),
@@ -420,7 +518,7 @@ class _AppIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
-      dimension: 40,
+      dimension: 42,
       child: FutureBuilder<Uint8List?>(
         future: NativeBridge.appIcon(packageName),
         builder: (context, snapshot) {

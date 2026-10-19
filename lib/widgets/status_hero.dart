@@ -2,36 +2,35 @@ import 'package:flutter/material.dart';
 
 import '../l10n/gen/app_localizations.dart';
 import '../models/preset.dart';
+import '../theme.dart';
+import 'panel.dart';
 
 class StatusHero extends StatelessWidget {
-  const StatusHero({super.key, required this.current, required this.loaded, required this.busy});
+  const StatusHero({super.key, required this.current, required this.loaded, required this.busy, this.ready = true});
 
   final CurrentSetting current;
   final bool loaded;
   final bool busy;
+  final bool ready;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
     final preset = current.effective;
     final active = preset?.enabled ?? false;
     final custom = current.isCustom;
-    final fg = active ? scheme.onPrimary : scheme.onSurface;
-    final muted = active ? scheme.onPrimary.withValues(alpha: 0.8) : scheme.onSurfaceVariant;
 
-    final (pill, caption) = !loaded
-        ? (l10n.heroLoading, l10n.heroLoadingCaption)
+    final caption = !loaded
+        ? l10n.heroLoadingCaption
         : active
-            ? (l10n.heroActive, l10n.heroActiveCaption)
+            ? l10n.heroActiveCaption
             : custom
-                ? (l10n.heroCustom, l10n.heroCustomCaption)
-                : (l10n.heroOff, l10n.heroOffCaption);
+                ? l10n.heroCustomCaption
+                : l10n.heroOffCaption;
 
     final Widget headline;
     if (!loaded) {
-      headline = Text('—', key: const ValueKey('loading'), style: text.displayMedium?.copyWith(color: fg));
+      headline = Text('—', key: const ValueKey('loading'), style: AppText.display.copyWith(fontSize: 64, color: Palette.muted));
     } else if (preset?.fps case final fps?) {
       headline = Row(
         key: ValueKey(preset),
@@ -39,101 +38,88 @@ class StatusHero extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
         children: [
-          Text('$fps', style: text.displayLarge?.copyWith(color: fg, fontWeight: FontWeight.w700, height: 1)),
-          const SizedBox(width: 8),
-          Text('FPS', style: text.headlineSmall?.copyWith(color: muted, fontWeight: FontWeight.w600)),
+          Text(
+            '$fps',
+            style: AppText.display.copyWith(fontSize: 104, height: 0.95, letterSpacing: -3, color: Palette.accent),
+          ),
+          const SizedBox(width: 10),
+          Text('FPS', style: AppText.heading.copyWith(fontSize: 22)),
         ],
       );
     } else if (custom) {
-      headline = Text(l10n.heroCustom,
-          key: const ValueKey('custom'), style: text.headlineLarge?.copyWith(color: fg, fontWeight: FontWeight.w600));
+      headline = Text(
+        l10n.heroCustom,
+        key: const ValueKey('custom'),
+        style: AppText.display.copyWith(fontSize: 44, height: 1.1),
+      );
     } else {
-      headline = Text(l10n.presetOff,
-          key: const ValueKey('off'), style: text.displayMedium?.copyWith(color: fg, fontWeight: FontWeight.w600));
+      headline = Text(
+        l10n.presetOff,
+        key: const ValueKey('off'),
+        style: AppText.display.copyWith(fontSize: 72, height: 1, color: ready ? Palette.text : Palette.textSoft),
+      );
     }
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 450),
-      curve: Curves.easeOutCubic,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        color: active ? null : scheme.surfaceContainerHigh,
-        gradient: active
-            ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [scheme.primary, Color.lerp(scheme.primary, scheme.tertiary, 0.6)!],
-              )
-            : null,
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 20, 16, 0),
-            child: Row(
-              children: [
-                Icon(Icons.auto_awesome_motion, color: fg, size: 22),
-                const SizedBox(width: 8),
-                Expanded(child: Text(l10n.heroTitle, style: text.titleMedium?.copyWith(color: fg))),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: active ? scheme.onPrimary.withValues(alpha: 0.18) : scheme.surfaceContainerHighest,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+    final range = switch ((preset?.sourceFps, preset?.fps)) {
+      (final from?, final to?) => '$from → $to',
+      _ => null,
+    };
+
+    return Semantics(
+      container: true,
+      label: '${l10n.heroTitle}: ${preset?.label(l10n) ?? l10n.heroCustom}',
+      child: Panel(
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: active ? scheme.onPrimary : scheme.outline,
-                        ),
+                      Expanded(
+                        child: Text(l10n.heroTitle, style: const TextStyle(fontSize: 14, color: Palette.muted)),
                       ),
-                      const SizedBox(width: 6),
-                      Text(pill, style: text.labelMedium?.copyWith(color: fg)),
+                      if (range != null) Text(range, style: AppText.mono.copyWith(fontSize: 12, color: Palette.muted)),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 350),
-              switchInCurve: Curves.easeOutBack,
-              transitionBuilder: (child, animation) => FadeTransition(
-                opacity: animation,
-                child: ScaleTransition(scale: Tween(begin: 0.85, end: 1.0).animate(animation), child: child),
+                  const SizedBox(height: 14),
+                  ExcludeSemantics(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      switchInCurve: Curves.easeOutCubic,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween(begin: const Offset(0, 0.08), end: Offset.zero).animate(animation),
+                          child: child,
+                        ),
+                      ),
+                      layoutBuilder: (current, previous) => Stack(
+                        alignment: Alignment.bottomLeft,
+                        children: [...previous, ?current],
+                      ),
+                      child: FittedBox(
+                        key: headline.key,
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.bottomLeft,
+                        child: headline,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SegmentMeter(filled: loaded ? (preset?.meterLevel ?? 0) : 0),
+                  const SizedBox(height: 14),
+                  Text(caption, style: const TextStyle(fontSize: 14, height: 1.55, color: Palette.textSoft)),
+                ],
               ),
-              layoutBuilder: (current, previous) => Stack(
-                alignment: Alignment.centerLeft,
-                children: [...previous, ?current],
-              ),
-              child: headline,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
-            child: Text(caption, style: text.bodyMedium?.copyWith(color: muted)),
-          ),
-          SizedBox(
-            height: 4,
-            child: busy
-                ? LinearProgressIndicator(
-                    minHeight: 4,
-                    color: active ? scheme.onPrimary : scheme.primary,
-                    backgroundColor: Colors.transparent,
-                  )
-                : null,
-          ),
-        ],
+            SizedBox(height: 3, child: busy ? const LinearProgressIndicator(minHeight: 3) : null),
+          ],
+        ),
       ),
     );
   }

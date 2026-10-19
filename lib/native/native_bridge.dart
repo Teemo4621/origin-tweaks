@@ -60,6 +60,59 @@ class AppEntry {
   final bool isGame;
 }
 
+class TweakValue {
+  const TweakValue({required this.key, this.value, required this.expected});
+
+  final String key;
+  final String? value;
+  final String expected;
+
+  bool get matches => value == expected;
+}
+
+enum Tweak {
+  monsterPlus('monster_plus'),
+  hawkeye('hawkeye'),
+  touchBoost('touch_boost');
+
+  const Tweak(this.id);
+
+  final String id;
+}
+
+class TweakStatus {
+  const TweakStatus({this.enabled = false, this.values = const []});
+
+  factory TweakStatus.fromMap(Map<String, Object?> map) => TweakStatus(
+        enabled: map['enabled'] as bool? ?? false,
+        values: [
+          for (final raw in (map['values'] as List<Object?>? ?? const []).cast<Map<Object?, Object?>>())
+            TweakValue(
+              key: raw['key'] as String? ?? '',
+              value: raw['value'] as String?,
+              expected: raw['expected'] as String? ?? '',
+            ),
+        ],
+      );
+
+  final bool enabled;
+  final List<TweakValue> values;
+
+  bool get overwritten => enabled && values.any((v) => !v.matches);
+}
+
+enum ThermalLevel {
+  normal,
+  severe,
+  critical;
+
+  static ThermalLevel fromCode(int? code) => switch (code) {
+        final c? when c >= 4 => critical,
+        3 => severe,
+        _ => normal,
+      };
+}
+
 class UpdateInfo {
   const UpdateInfo({required this.version, this.notes = '', this.pageUrl = '', this.size = 0});
 
@@ -125,6 +178,12 @@ class NativeBridge {
   static Future<ApplyResult> setSuperRes(int level) async =>
       ApplyResult.fromCode(await _channel.invokeMethod<int>('setSuperRes', {'level': level}));
 
+  static Future<TweakStatus> tweak(Tweak tweak) async => TweakStatus.fromMap(
+      await _channel.invokeMapMethod<String, Object?>('getTweak', {'id': tweak.id}) ?? const {});
+
+  static Future<ApplyResult> setTweak(Tweak tweak, bool enabled) async =>
+      ApplyResult.fromCode(await _channel.invokeMethod<int>('setTweak', {'id': tweak.id, 'enabled': enabled}));
+
   static Future<SetupStatus> setupStatus() async =>
       SetupStatus.fromMap(await _channel.invokeMapMethod<String, Object?>('getSetupStatus') ?? const {});
 
@@ -174,6 +233,14 @@ class NativeBridge {
       await _channel.invokeMethod<bool>('grantUsageAccess') ?? false;
 
   static Future<void> openUsageAccessSettings() => _channel.invokeMethod('openUsageAccessSettings');
+
+  static Future<ThermalLevel> thermalStatus() async {
+    try {
+      return ThermalLevel.fromCode(await _channel.invokeMethod<int>('getThermalStatus'));
+    } catch (_) {
+      return ThermalLevel.normal;
+    }
+  }
 
   static Future<String> appVersion() async => await _channel.invokeMethod<String>('getAppVersion') ?? '';
 

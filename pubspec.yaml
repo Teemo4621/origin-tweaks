@@ -25,3 +25,24 @@ dev_dependencies:
 flutter:
   generate: true
   uses-material-design: true
+  fonts:
+    - family: BaiJamjuree
+      fonts:
+        - asset: assets/fonts/BaiJamjuree-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/BaiJamjuree-Bold.ttf
+          weight: 700
+    - family: IBMPlexSansThai
+      fonts:
+        - asset: assets/fonts/IBMPlexSansThai-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexSansThai-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexSansThai-SemiBold.ttf
+          weight: 600
+    - family: IBMPlexMono
+      fonts:
+        - asset: assets/fonts/IBMPlexMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexMono-Medium.ttf
+          weight: 500

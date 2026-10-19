@@ -1,275 +1,474 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:origin_tweaks/l10n/gen/app_localizations.dart';
-import 'package:origin_tweaks/main.dart';
 import 'package:origin_tweaks/models/preset.dart';
 import 'package:origin_tweaks/native/native_bridge.dart';
 import 'package:origin_tweaks/native/update_controller.dart';
-import 'package:origin_tweaks/screens/home_screen.dart';
-import 'package:origin_tweaks/screens/profiles_screen.dart';
-import 'package:origin_tweaks/screens/setup_screen.dart';
-import 'package:origin_tweaks/widgets/preset_grid.dart';
+import 'package:origin_tweaks/widgets/onboarding_card.dart';
+import 'package:origin_tweaks/widgets/panel.dart';
+import 'package:origin_tweaks/widgets/preset_selector.dart';
+import 'package:origin_tweaks/widgets/setup_card.dart';
 import 'package:origin_tweaks/widgets/status_hero.dart';
 import 'package:origin_tweaks/widgets/super_res_card.dart';
+import 'package:origin_tweaks/widgets/tool_list.dart';
 import 'package:origin_tweaks/widgets/update_card.dart';
 
-const _th = Locale('th');
-const _en = Locale('en');
+import 'support.dart';
 
-Widget _localized(Widget home, {Locale locale = _th, Brightness brightness = Brightness.light}) => MaterialApp(
-      theme: buildTheme(brightness),
-      locale: locale,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: home,
-    );
-
-void _mockNative(WidgetTester tester) {
-  tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-    const MethodChannel('origin_tweaks/native'),
-    (call) async => switch (call.method) {
-      'getSetupStatus' => <String, Object?>{'shizuku': 'noPermission', 'helper': true},
-      'getCurrent' => <String, Object?>{'value': '7'},
-      'listApps' => [
-          <String, Object?>{'package': 'com.example.verylongpackagename.game', 'label': 'Very Long Game Name Here', 'isGame': true},
-          <String, Object?>{'package': 'com.example.app', 'label': 'App', 'isGame': false},
-        ],
-      'getProfiles' => <String, String>{'com.example.verylongpackagename.game': 'fps144'},
-      'isProfileServiceEnabled' => true,
-      'hasUsageAccess' => false,
-      _ => null,
-    },
-  );
-}
+TweakStatus _status({bool enabled = false, List<(String, String?, String)> values = const []}) =>
+    TweakStatus.fromMap(tweakMap(enabled: enabled, values: values));
 
 void main() {
-  test('fromId resolves known ids only', () {
-    expect(Preset.fromId('fps144'), Preset.fps144);
-    expect(Preset.fromId('nope'), isNull);
-    expect(Preset.fromId(null), isNull);
+  group('StatusHero', () {
+    testWidgets('shows the active FPS, its source range and a full meter', (tester) async {
+      await tester.pumpWidget(inScaffold(
+        const StatusHero(current: CurrentSetting(value: 'x', preset: Preset.fps144), loaded: true, busy: false),
+      ));
+      expect(find.text('144'), findsOneWidget);
+      expect(find.text('FPS'), findsOneWidget);
+      expect(find.text('48 → 144'), findsOneWidget);
+      expect(find.text(l10nTh().heroActiveCaption), findsOneWidget);
+      expect(tester.widget<SegmentMeter>(find.byType(SegmentMeter)).filled, 4);
+    });
+
+    testWidgets('off shows the off label, no range and an empty meter', (tester) async {
+      await tester.pumpWidget(inScaffold(const StatusHero(current: CurrentSetting(), loaded: true, busy: false)));
+      expect(find.text('ปิด'), findsOneWidget);
+      expect(find.textContaining('→'), findsNothing);
+      expect(tester.widget<SegmentMeter>(find.byType(SegmentMeter)).filled, 0);
+      expect(find.text(l10nTh().heroOffCaption), findsOneWidget);
+    });
+
+    testWidgets('a value written by GameCube is shown as custom', (tester) async {
+      await tester.pumpWidget(inScaffold(
+        const StatusHero(current: CurrentSetting(value: '1:105:26574:72:144'), loaded: true, busy: false),
+      ));
+      expect(find.text(l10nTh().heroCustom), findsOneWidget);
+      expect(find.text(l10nTh().heroCustomCaption), findsOneWidget);
+    });
+
+    testWidgets('loading shows a dash and busy shows a progress bar', (tester) async {
+      await tester.pumpWidget(inScaffold(const StatusHero(current: CurrentSetting(), loaded: false, busy: true)));
+      expect(find.text('—'), findsOneWidget);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('announces the current mode to screen readers', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(inScaffold(
+        const StatusHero(current: CurrentSetting(value: 'x', preset: Preset.fps120), loaded: true, busy: false),
+      ));
+      expect(find.bySemanticsLabel(RegExp('^${RegExp.escape(l10nTh().heroTitle)}: 120 FPS')), findsOneWidget);
+      handle.dispose();
+    });
   });
 
-  test('result codes map to ShellUserService constants', () {
-    expect(ApplyResult.fromCode(0), ApplyResult.ok);
-    expect(ApplyResult.fromCode(2), ApplyResult.blocked);
-    expect(ApplyResult.fromCode(3), ApplyResult.noPermission);
-    expect(ApplyResult.fromCode(99), ApplyResult.failed);
-    expect(ApplyResult.fromCode(null), ApplyResult.failed);
-  });
+  group('PresetSelector', () {
+    Widget selector({Preset? selected, Preset? pending, bool enabled = true, ValueChanged<Preset>? onSelected}) =>
+        inScaffold(PresetSelector(
+          selected: selected,
+          pending: pending,
+          enabled: enabled,
+          onSelected: onSelected ?? (_) {},
+        ));
 
-  test('preset metadata', () {
-    expect(Preset.fps144.tested, isTrue);
-    expect(Preset.fps90.tested, isFalse);
-    expect(Preset.fps120.fps, 120);
-    expect(Preset.off.fps, isNull);
-  });
+    testWidgets('shows four choices with tested/untested captions', (tester) async {
+      await tester.pumpWidget(selector(selected: Preset.fps144));
+      for (final label in ['ปิด', '90', '120', '144']) {
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
+      expect(find.text('ทดสอบแล้ว'), findsOneWidget);
+      expect(find.text('ยังไม่ทดสอบ'), findsNWidgets(2));
+    });
 
-  test('apply messages', () {
-    final th = lookupAppLocalizations(_th);
-    expect(ApplyResult.ok.message(th, Preset.fps144), 'เปิด 144 FPS แล้ว');
-    expect(ApplyResult.ok.message(th, Preset.off), 'ปิดแทรกเฟรมแล้ว');
-    expect(ApplyResult.noHelper.message(th, Preset.fps90), 'ยังตั้งค่าครั้งแรกไม่เสร็จ');
-    expect(ApplyResult.failed.message(th, Preset.fps90), 'ตั้งค่าไม่สำเร็จ');
-    final en = lookupAppLocalizations(_en);
-    expect(ApplyResult.ok.message(en, Preset.fps144), '144 FPS enabled');
-    expect(ApplyResult.ok.message(en, Preset.off), 'Frame generation turned off');
-  });
+    testWidgets('reports the tapped preset', (tester) async {
+      final tapped = <Preset>[];
+      await tester.pumpWidget(selector(selected: Preset.off, onSelected: tapped.add));
+      await tester.tap(find.text('120'));
+      await tester.tap(find.text('ปิด'));
+      expect(tapped, [Preset.fps120, Preset.off]);
+    });
 
-  test('preset labels per locale', () {
-    expect(Preset.off.label(lookupAppLocalizations(_th)), 'ปิด');
-    expect(Preset.off.label(lookupAppLocalizations(_en)), 'Off');
-    expect(Preset.fps120.label(lookupAppLocalizations(_th)), '120 FPS');
-    expect(Preset.fps120.label(lookupAppLocalizations(_en)), '120 FPS');
-    expect(lookupAppLocalizations(_en).profilesConfiguredCount(1), '1 app configured');
-    expect(lookupAppLocalizations(_en).profilesConfiguredCount(3), '3 apps configured');
-  });
+    testWidgets('ignores taps while disabled or while a change is pending', (tester) async {
+      final tapped = <Preset>[];
+      await tester.pumpWidget(selector(enabled: false, onSelected: tapped.add));
+      await tester.tap(find.text('144'), warnIfMissed: false);
+      await tester.pumpWidget(selector(pending: Preset.fps90, onSelected: tapped.add));
+      await tester.tap(find.text('144'), warnIfMissed: false);
+      expect(tapped, isEmpty);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('90'), findsNothing);
+    });
 
-  test('current setting resolves effective preset', () {
-    expect(const CurrentSetting().effective, Preset.off);
-    expect(const CurrentSetting(value: '3', preset: Preset.fps144).effective, Preset.fps144);
-    expect(const CurrentSetting(value: '7').isCustom, isTrue);
-  });
-
-  test('setup status helpers', () {
-    const status = SetupStatus(shizuku: ShizukuState.noPermission, helper: true, battery: true);
-    expect(status.shizukuUsable, isTrue);
-    expect(status.doneCount, 2);
-    expect(status.ready, isFalse);
-    expect(const SetupStatus().shizukuUsable, isFalse);
-  });
-
-  test('apps sort games first and filter by label or package', () {
-    const apps = [
-      AppEntry(packageName: 'com.b.app', label: 'Beta', isGame: false),
-      AppEntry(packageName: 'com.z.game', label: 'Zeta', isGame: true),
-      AppEntry(packageName: 'com.a.game', label: 'alpha', isGame: true),
-    ];
-    final sorted = sortApps(apps);
-    expect(sorted.map((a) => a.label), ['alpha', 'Zeta', 'Beta']);
-    expect(filterApps(sorted, 'z.GAME').single.label, 'Zeta');
-    expect(filterApps(sorted, '  ').length, 3);
-  });
-
-  testWidgets('preset grid shows badges and reports taps', (tester) async {
-    Preset? tapped;
-    await tester.pumpWidget(_localized(
-      Scaffold(
-        body: PresetGrid(
-          selected: Preset.off,
-          pending: null,
-          enabled: true,
-          onSelected: (p) => tapped = p,
+    testWidgets('marks the selected choice for accessibility', (tester) async {
+      final handle = tester.ensureSemantics();
+      await tester.pumpWidget(selector(selected: Preset.fps144));
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('144 FPS, ทดสอบแล้ว')),
+        matchesSemantics(
+          isButton: true,
+          isSelected: true,
+          hasSelectedState: true,
+          isEnabled: true,
+          hasEnabledState: true,
+          isInMutuallyExclusiveGroup: true,
+          hasTapAction: true,
         ),
-      ),
-    ));
-    expect(find.text('ทดสอบแล้ว'), findsOneWidget);
-    expect(find.text('ยังไม่ทดสอบ'), findsNWidgets(2));
-    await tester.tap(find.text('144 FPS'));
-    expect(tapped, Preset.fps144);
+      );
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('90 FPS, ยังไม่ทดสอบ')),
+        matchesSemantics(
+          isButton: true,
+          hasSelectedState: true,
+          isEnabled: true,
+          hasEnabledState: true,
+          isInMutuallyExclusiveGroup: true,
+          hasTapAction: true,
+        ),
+      );
+      handle.dispose();
+    });
+
+    testWidgets('choice buttons are at least 48 px tall', (tester) async {
+      await tester.pumpWidget(selector());
+      final box = tester.getSize(find.ancestor(of: find.text('90'), matching: find.byType(InkWell)).first);
+      expect(box.height, greaterThanOrEqualTo(48));
+    });
   });
 
-  testWidgets('home shows onboarding when setup is not ready', (tester) async {
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      const MethodChannel('origin_tweaks/native'),
-      (call) async => switch (call.method) {
-        'getSetupStatus' => <String, Object?>{'shizuku': 'notRunning'},
-        'getCurrent' => <String, Object?>{'value': '1', 'presetId': 'fps144'},
-        _ => null,
-      },
-    );
-    await tester.pumpWidget(_localized(
-      Scaffold(body: HomeScreen(refresh: ValueNotifier(0))),
-      brightness: Brightness.dark,
-    ));
-    await tester.pumpAndSettle();
-    expect(find.text('เริ่มต้นใช้งาน'), findsOneWidget);
-    expect(find.text('เปิด Shizuku'), findsOneWidget);
-    expect(find.text('144'), findsOneWidget);
+  group('ToolList', () {
+    Widget list({
+      Map<Tweak, TweakStatus> statuses = const {},
+      bool enabled = true,
+      Tweak? busy,
+      void Function(Tweak, bool)? onChanged,
+      ValueChanged<Tweak>? onOpen,
+    }) =>
+        inScaffold(ToolList(
+          statuses: statuses,
+          enabled: enabled,
+          busy: busy,
+          onChanged: onChanged ?? (_, _) {},
+          onOpen: onOpen ?? (_) {},
+        ));
+
+    testWidgets('lists every tool in order with its short description', (tester) async {
+      await tester.pumpWidget(list());
+      final t = l10nTh();
+      final titles = [t.hawkeyeTitle, t.touchBoostTitle, t.monsterPlusTitle];
+      final ys = [for (final title in titles) tester.getTopLeft(find.text(title)).dy];
+      expect(ys, orderedEquals([...ys]..sort()));
+      for (final short in [t.hawkeyeShort, t.touchBoostShort, t.monsterPlusShort]) {
+        expect(find.text(short), findsOneWidget);
+      }
+      expect(find.byType(Switch), findsNWidgets(3));
+    });
+
+    testWidgets('only Monster+ carries the heat tag', (tester) async {
+      await tester.pumpWidget(list());
+      expect(find.text('ร้อนง่าย'), findsOneWidget);
+      final monsterRow = find.ancestor(of: find.text('Monster+'), matching: find.byType(ToolRow));
+      expect(find.descendant(of: monsterRow, matching: find.text('ร้อนง่าย')), findsOneWidget);
+    });
+
+    testWidgets('switches report the tweak and the new value', (tester) async {
+      final changes = <(Tweak, bool)>[];
+      await tester.pumpWidget(list(
+        statuses: {Tweak.touchBoost: _status(enabled: true)},
+        onChanged: (tweak, value) => changes.add((tweak, value)),
+      ));
+      await tester.tap(find.byType(Switch).at(0));
+      await tester.tap(find.byType(Switch).at(1));
+      expect(changes, [(Tweak.hawkeye, true), (Tweak.touchBoost, false)]);
+    });
+
+    testWidgets('tapping a row opens its details', (tester) async {
+      final opened = <Tweak>[];
+      await tester.pumpWidget(list(onOpen: opened.add));
+      await tester.tap(find.text(l10nTh().touchBoostShort));
+      await tester.tap(find.text('Monster+'));
+      expect(opened, [Tweak.touchBoost, Tweak.monsterPlus]);
+    });
+
+    testWidgets('disabled switches and a busy row cannot be toggled', (tester) async {
+      final changes = <(Tweak, bool)>[];
+      await tester.pumpWidget(list(enabled: false, onChanged: (t, v) => changes.add((t, v))));
+      for (final element in find.byType(Switch).evaluate()) {
+        expect((element.widget as Switch).onChanged, isNull);
+      }
+      await tester.pumpWidget(list(busy: Tweak.hawkeye, onChanged: (t, v) => changes.add((t, v))));
+      expect(find.byType(Switch), findsNWidgets(2));
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(changes, isEmpty);
+    });
+
+    testWidgets('a drifted tool shows a warning mark', (tester) async {
+      await tester.pumpWidget(list(statuses: {
+        Tweak.hawkeye: _status(enabled: true, values: [('system/gamecube_hawkeye_effective', '0', '1')]),
+        Tweak.touchBoost: _status(enabled: true, values: [('system/vts_game_para_adjust', '0,5,5,5', '0,5,5,5')]),
+      }));
+      expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+    });
   });
 
-  testWidgets('all tabs render on a narrow phone without overflow', (tester) async {
-    tester.view.physicalSize = const Size(360, 760);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    _mockNative(tester);
-    await tester.pumpWidget(const OriginTweaksApp(locale: _th));
-    await tester.pumpAndSettle();
-    expect(find.text('เริ่มต้นใช้งาน'), findsOneWidget);
-    final homeScroll = find.descendant(of: find.byType(HomeScreen), matching: find.byType(Scrollable)).first;
-    await tester.scrollUntilVisible(find.byType(StatusHero), 200, scrollable: homeScroll);
-    expect(find.text('ค่าจากระบบ'), findsWidgets);
-    expect(find.textContaining('gamecube_frame_interpolation'), findsNothing);
-    await tester.scrollUntilVisible(find.text('กดค้างเพื่อเปิดแอปนี้'), 200, scrollable: homeScroll);
-    await tester.tap(find.text('Profile'));
-    await tester.pumpAndSettle();
-    expect(find.text('ตั้งไว้ 1 แอป'), findsOneWidget);
-    final profileScroll = find.descendant(of: find.byType(ProfilesScreen), matching: find.byType(Scrollable)).first;
-    await tester.scrollUntilVisible(find.text('com.example.app'), 200, scrollable: profileScroll);
-    expect(find.text('144 FPS'), findsOneWidget);
-    await tester.tap(find.text('144 FPS'));
-    await tester.pumpAndSettle();
-    expect(find.text('120 FPS'), findsOneWidget);
-    await tester.tapAt(Offset.zero);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('ตั้งค่า'));
-    await tester.pumpAndSettle();
-    expect(find.text('1/4'), findsOneWidget);
+  group('ToolSheet', () {
+    Future<List<bool>> openSheet(
+      WidgetTester tester, {
+      required Tweak tweak,
+      TweakStatus status = const TweakStatus(),
+      int thermal = 0,
+      bool enabled = true,
+    }) async {
+      FakeNative(tester, handlers: {'getThermalStatus': (_) => thermal});
+      final changes = <bool>[];
+      var current = status;
+      await tester.pumpWidget(localized(Scaffold(
+        body: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showToolSheet(
+              context,
+              tweak: tweak,
+              enabled: enabled,
+              load: () async => current,
+              onChanged: (value) async {
+                changes.add(value);
+                current = TweakStatus(enabled: value, values: current.values);
+              },
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      )));
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      return changes;
+    }
+
+    testWidgets('shows the card copy, live values and the legend', (tester) async {
+      await openSheet(tester, tweak: Tweak.monsterPlus, status: _status(enabled: true, values: [
+        ('system/power_save_type', '8', '8'),
+        ('secure/power_save_type', '1', '8'),
+      ]));
+      final t = l10nTh();
+      expect(find.text(t.monsterPlusBody), findsOneWidget);
+      expect(find.text('system/power_save_type'), findsOneWidget);
+      expect(find.text(' ≠ 8'), findsOneWidget);
+      expect(find.text(t.liveValuesLegend), findsOneWidget);
+      expect(find.text('ทดลอง · เปิดอยู่'), findsOneWidget);
+    });
+
+    testWidgets('warns when the phone is critically hot', (tester) async {
+      await openSheet(tester, tweak: Tweak.monsterPlus, thermal: 4);
+      expect(find.text(l10nTh().thermalCriticalTitle), findsOneWidget);
+      expect(find.text(l10nTh().thermalBody), findsOneWidget);
+    });
+
+    testWidgets('stays quiet when the phone is cool', (tester) async {
+      await openSheet(tester, tweak: Tweak.hawkeye, thermal: 2);
+      expect(find.text(l10nTh().thermalCriticalTitle), findsNothing);
+      expect(find.text(l10nTh().thermalSevereTitle), findsNothing);
+    });
+
+    testWidgets('turn off and restore calls back with false, then hides itself', (tester) async {
+      final changes = await openSheet(tester, tweak: Tweak.touchBoost, status: _status(enabled: true));
+      await tester.tap(find.text('ปิดและคืนค่า'));
+      await tester.pumpAndSettle();
+      expect(changes, [false]);
+      expect(find.text('ปิดและคืนค่า'), findsNothing);
+      expect(find.text('ทดลอง · ปิดอยู่'), findsOneWidget);
+    });
+
+    testWidgets('the sheet switch turns a tool on', (tester) async {
+      final changes = await openSheet(tester, tweak: Tweak.hawkeye);
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+      expect(changes, [true]);
+    });
+
+    testWidgets('without setup the switch is disabled and values explain why', (tester) async {
+      await openSheet(tester, tweak: Tweak.hawkeye, enabled: false);
+      expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNull);
+      expect(find.text(l10nTh().liveValuesEmpty), findsOneWidget);
+    });
+
+    testWidgets('done closes the sheet', (tester) async {
+      await openSheet(tester, tweak: Tweak.hawkeye);
+      await tester.tap(find.text('เสร็จ'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ToolSheet), findsNothing);
+    });
   });
 
-  testWidgets('english locale renders all tabs on a narrow phone without overflow', (tester) async {
-    tester.view.physicalSize = const Size(360, 760);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-    _mockNative(tester);
-    await tester.pumpWidget(const OriginTweaksApp(locale: _en));
-    await tester.pumpAndSettle();
-    expect(find.text('Getting started'), findsOneWidget);
-    expect(find.text('Auto setup'), findsOneWidget);
-    expect(find.text('Frame gen'), findsOneWidget);
-    final homeScroll = find.descendant(of: find.byType(HomeScreen), matching: find.byType(Scrollable)).first;
-    await tester.scrollUntilVisible(find.text('Tested'), 200, scrollable: homeScroll);
-    expect(find.text('Untested'), findsNWidgets(2));
-    expect(find.text('Off'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Long-press to open this app'), 200, scrollable: homeScroll);
-    await tester.tap(find.text('Profiles'));
-    await tester.pumpAndSettle();
-    expect(find.text('Per-game profiles'), findsOneWidget);
-    expect(find.text('1 app configured'), findsOneWidget);
-    expect(find.text('Usage access required'), findsOneWidget);
-    final profileScroll = find.descendant(of: find.byType(ProfilesScreen), matching: find.byType(Scrollable)).first;
-    await tester.scrollUntilVisible(find.text('com.example.app'), 200, scrollable: profileScroll);
-    expect(find.text('Not set'), findsOneWidget);
-    await tester.tap(find.text('Setup'));
-    await tester.pumpAndSettle();
-    expect(find.text('Initial setup'), findsOneWidget);
-    expect(find.text('First-time setup'), findsOneWidget);
-    expect(find.text('Not allowed yet'), findsOneWidget);
-    final setupScroll = find.descendant(of: find.byType(SetupScreen), matching: find.byType(Scrollable)).first;
-    await tester.scrollUntilVisible(find.text('Limitations'), 200, scrollable: setupScroll);
-    expect(tester.takeException(), isNull);
+  group('ThermalWarning', () {
+    testWidgets('titles differ by level', (tester) async {
+      await tester.pumpWidget(inScaffold(const ThermalWarning(level: ThermalLevel.severe), locale: en));
+      expect(find.text('Phone is very hot'), findsOneWidget);
+      await tester.pumpWidget(inScaffold(const ThermalWarning(level: ThermalLevel.critical), locale: en));
+      expect(find.text('Phone is critically hot'), findsOneWidget);
+    });
   });
 
-  testWidgets('super resolution card shows levels in both languages and reports taps', (tester) async {
-    int? picked;
-    await tester.pumpWidget(_localized(
-      Scaffold(body: SuperResCard(level: 0, enabled: true, busy: false, onChanged: (v) => picked = v)),
-      locale: _en,
-    ));
-    expect(find.text('Super resolution'), findsOneWidget);
-    expect(find.text('Experimental'), findsOneWidget);
-    await tester.tap(find.text('Extreme'));
-    expect(picked, 2);
+  group('OnboardingCard', () {
+    Widget card(SetupStatus status) =>
+        inScaffold(OnboardingCard(status: status, onChanged: (_) {}, onRefresh: () {}, onOpenSetup: () {}));
 
-    await tester.pumpWidget(_localized(
-      Scaffold(body: SuperResCard(level: 1, enabled: false, busy: false, onChanged: (v) => picked = v)),
-    ));
-    await tester.pumpAndSettle();
-    expect(find.text('เพิ่มความละเอียด'), findsOneWidget);
-    picked = null;
-    await tester.tap(find.text('สูงสุด'));
-    expect(picked, isNull);
+    testWidgets('Shizuku not running: step 1 and an open-Shizuku button', (tester) async {
+      final native = FakeNative(tester);
+      await tester.pumpWidget(card(const SetupStatus(shizuku: ShizukuState.notRunning)));
+      expect(find.text('ขั้นที่ 1 จาก 3'), findsOneWidget);
+      expect(find.text(l10nTh().onboardingTitle), findsOneWidget);
+      await tester.tap(find.text('เปิด Shizuku'));
+      expect(native.called('openShizuku'), hasLength(1));
+    });
+
+    testWidgets('waiting for permission: step 2 and auto setup', (tester) async {
+      await tester.pumpWidget(card(const SetupStatus(shizuku: ShizukuState.noPermission)));
+      expect(find.text('ขั้นที่ 2 จาก 3'), findsOneWidget);
+      expect(find.text('ตั้งค่าอัตโนมัติ'), findsOneWidget);
+    });
+
+    testWidgets('Shizuku missing: offers a re-check instead', (tester) async {
+      await tester.pumpWidget(card(const SetupStatus(shizuku: ShizukuState.notInstalled)));
+      expect(find.text('ตรวจอีกครั้ง'), findsOneWidget);
+      expect(find.text('ตั้งค่าอัตโนมัติ'), findsNothing);
+    });
+
+    testWidgets('shows the last error', (tester) async {
+      await tester.pumpWidget(card(const SetupStatus(shizuku: ShizukuState.ready, error: 'secure')));
+      expect(find.textContaining(l10nTh().setupErrorSecure), findsOneWidget);
+    });
+
+    testWidgets('auto setup runs the native flow and reports the result', (tester) async {
+      final native = FakeNative(tester, handlers: {'autoSetup': (_) => readySetup});
+      SetupStatus? reported;
+      await tester.pumpWidget(inScaffold(OnboardingCard(
+        status: const SetupStatus(shizuku: ShizukuState.noPermission),
+        onChanged: (s) => reported = s,
+        onRefresh: () {},
+      )));
+      await tester.tap(find.text('ตั้งค่าอัตโนมัติ'));
+      await tester.pumpAndSettle();
+      expect(native.called('requestShizuku'), hasLength(1));
+      expect(native.called('autoSetup'), hasLength(1));
+      expect(reported?.ready, isTrue);
+      expect(find.text(l10nTh().autoSetupDone), findsOneWidget);
+    });
   });
 
-  testWidgets('update card shows the new version and installs on tap', (tester) async {
-    final calls = <String>[];
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      const MethodChannel('origin_tweaks/native'),
-      (call) async {
-        calls.add(call.method);
-        return switch (call.method) {
-          'getAppVersion' => '0.1.0-alpha.3',
-          'checkUpdate' => <String, Object?>{'version': '0.1.0-alpha.4', 'notes': '## Notes\n- Faster frame gen', 'size': 1},
-          'installUpdate' => 4,
-          _ => null,
-        };
-      },
-    );
-    final controller = UpdateController.instance;
-    await controller.check();
-    expect(controller.status, UpdateStatus.available);
+  group('SetupCard', () {
+    testWidgets('incomplete: required tags, usage access shortcut and auto setup', (tester) async {
+      final native = FakeNative(tester);
+      await tester.pumpWidget(inScaffold(SetupCard(
+        status: const SetupStatus(shizuku: ShizukuState.ready, battery: true),
+        onChanged: (_) {},
+      )));
+      expect(find.text('จำเป็น'), findsNWidgets(2));
+      expect(find.text('ตั้งค่าอัตโนมัติ'), findsOneWidget);
+      await tester.tap(find.text('เปิด'));
+      expect(native.called('openUsageAccessSettings'), hasLength(1));
+    });
 
-    await tester.binding.setSurfaceSize(const Size(320, 640));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    await tester.pumpWidget(_localized(
-      Scaffold(body: ListView(children: [UpdateCard(controller: controller), AboutCard(controller: controller)])),
-    ));
-    expect(find.text('มีเวอร์ชันใหม่: v0.1.0-alpha.4'), findsNWidgets(2));
-    expect(find.text('- Faster frame gen'), findsOneWidget);
-    expect(find.textContaining('เวอร์ชัน 0.1.0-alpha.3'), findsOneWidget);
+    testWidgets('complete: no tags and a re-run button', (tester) async {
+      await tester.pumpWidget(inScaffold(SetupCard(status: SetupStatus.fromMap(readySetup), onChanged: (_) {})));
+      expect(find.text('จำเป็น'), findsNothing);
+      expect(find.text('ตั้งค่าอัตโนมัติอีกครั้ง'), findsOneWidget);
+      expect(find.byIcon(Icons.check_rounded), findsNWidgets(4));
+    });
 
-    await tester.tap(find.text('อัปเดต').first);
-    await tester.pumpAndSettle();
-    expect(calls, contains('installUpdate'));
-    expect(find.text('อนุญาตให้ Origin Tweaks ติดตั้งแอปที่ไม่รู้จัก แล้วกดอัปเดตอีกครั้ง'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    testWidgets('start-Shizuku hint when it is not usable', (tester) async {
+      await tester.pumpWidget(inScaffold(SetupCard(status: const SetupStatus(), onChanged: (_) {})));
+      expect(find.text(l10nTh().setupStartShizukuFirst), findsOneWidget);
+    });
   });
 
-  test('install result codes match Updater constants', () {
-    expect(InstallResult.fromCode(0), InstallResult.started);
-    expect(InstallResult.fromCode(1), InstallResult.downloadFailed);
-    expect(InstallResult.fromCode(2), InstallResult.checksumFailed);
-    expect(InstallResult.fromCode(3), InstallResult.failed);
-    expect(InstallResult.fromCode(4), InstallResult.needsPermission);
+  group('Updates', () {
+    testWidgets('banner and about card offer the new version and install it', (tester) async {
+      final native = FakeNative(tester, handlers: {
+        'getAppVersion': (_) => '0.1.0-alpha.4',
+        'checkUpdate': (_) => <String, Object?>{'version': '0.1.0-alpha.5', 'notes': 'x', 'size': 1},
+        'installUpdate': (_) => 4,
+      });
+      final controller = UpdateController.instance;
+      await controller.check();
+      expect(controller.status, UpdateStatus.available);
+
+      await tester.pumpWidget(inScaffold(Column(children: [
+        UpdateBanner(controller: controller),
+        AboutCard(controller: controller),
+      ])));
+      expect(find.text('มีเวอร์ชันใหม่ 0.1.0-alpha.5'), findsOneWidget);
+      expect(find.text('เวอร์ชัน 0.1.0-alpha.4'), findsOneWidget);
+      expect(find.text('มีเวอร์ชันใหม่: v0.1.0-alpha.5'), findsOneWidget);
+
+      await tester.tap(find.text('อัปเดต').first);
+      await tester.pumpAndSettle();
+      expect(native.called('installUpdate'), hasLength(1));
+      expect(find.text(l10nTh().updateNeedsPermission), findsOneWidget);
+    });
+
+    testWidgets('up to date: the banner hides and the about card can check again', (tester) async {
+      final native = FakeNative(tester, handlers: {'checkUpdate': (_) => null});
+      final controller = UpdateController.instance;
+      await controller.check();
+      expect(controller.status, UpdateStatus.upToDate);
+
+      await tester.pumpWidget(inScaffold(Column(children: [
+        UpdateBanner(controller: controller),
+        AboutCard(controller: controller),
+      ])));
+      expect(find.textContaining('มีเวอร์ชันใหม่'), findsNothing);
+      expect(find.text('เป็นเวอร์ชันล่าสุดแล้ว'), findsOneWidget);
+      await tester.tap(find.text('ตรวจหาอัปเดต'));
+      await tester.pumpAndSettle();
+      expect(native.called('checkUpdate'), hasLength(2));
+    });
+
+    testWidgets('a failed check keeps the button and says so', (tester) async {
+      FakeNative(tester, handlers: {'checkUpdate': (_) => throw Exception('offline')});
+      final controller = UpdateController.instance;
+      await controller.check();
+      await tester.pumpWidget(inScaffold(AboutCard(controller: controller)));
+      expect(find.text(l10nTh().updateCheckFailed), findsOneWidget);
+      expect(find.text('ตรวจหาอัปเดต'), findsOneWidget);
+    });
+
+    test('install messages cover every result', () {
+      final t = l10nTh();
+      expect({for (final r in InstallResult.values) installMessage(t, r)}, hasLength(InstallResult.values.length));
+    });
+  });
+
+  group('Shared pieces', () {
+    testWidgets('status chip and screen header', (tester) async {
+      await tester.pumpWidget(inScaffold(const Column(children: [
+        ScreenHeader(title: 'Title', subtitle: 'Sub', trailing: StatusChip(label: 'พร้อมใช้งาน', active: true)),
+        SectionLabel('Tools', trailing: 'hint'),
+      ])));
+      expect(find.text('Title'), findsOneWidget);
+      expect(find.text('Sub'), findsOneWidget);
+      expect(find.text('พร้อมใช้งาน'), findsOneWidget);
+      expect(find.text('hint'), findsOneWidget);
+    });
+
+    testWidgets('segment meter fills the requested count', (tester) async {
+      await tester.pumpWidget(inScaffold(const SegmentMeter(filled: 2, count: 3)));
+      await tester.pumpAndSettle();
+      final colors = tester
+          .widgetList<AnimatedContainer>(find.byType(AnimatedContainer))
+          .map((c) => (c.decoration as BoxDecoration).color)
+          .toList();
+      expect(colors, hasLength(3));
+      expect(colors[0], colors[1]);
+      expect(colors[2], isNot(colors[0]));
+    });
+
+    testWidgets('hidden super resolution card still works if re-enabled', (tester) async {
+      int? picked;
+      await tester.pumpWidget(inScaffold(
+        SuperResCard(level: 0, enabled: true, busy: false, onChanged: (v) => picked = v),
+        locale: en,
+      ));
+      await tester.tap(find.text('Extreme'));
+      expect(picked, 2);
+    });
   });
 }

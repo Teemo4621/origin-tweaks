@@ -5,43 +5,10 @@ import 'screens/home_screen.dart';
 import 'screens/profiles_screen.dart';
 import 'screens/setup_screen.dart';
 import 'native/update_controller.dart';
+import 'theme.dart';
 
 void main() {
   runApp(const OriginTweaksApp());
-}
-
-ThemeData buildTheme(Brightness brightness) {
-  final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFF3D5AFE), brightness: brightness);
-  final rounded = RoundedRectangleBorder(borderRadius: BorderRadius.circular(20));
-  return ThemeData(
-    colorScheme: scheme,
-    useMaterial3: true,
-    scaffoldBackgroundColor: scheme.surface,
-    appBarTheme: AppBarTheme(
-      backgroundColor: scheme.surface,
-      surfaceTintColor: Colors.transparent,
-      scrolledUnderElevation: 0,
-      titleTextStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: scheme.onSurface),
-    ),
-    cardTheme: CardThemeData(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      color: scheme.surfaceContainer,
-      shape: rounded,
-      clipBehavior: Clip.antiAlias,
-    ),
-    filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        minimumSize: const Size(0, 48),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-    ),
-    snackBarTheme: SnackBarThemeData(
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    ),
-    listTileTheme: const ListTileThemeData(contentPadding: EdgeInsets.symmetric(horizontal: 16)),
-  );
 }
 
 class OriginTweaksApp extends StatelessWidget {
@@ -57,8 +24,8 @@ class OriginTweaksApp extends StatelessWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       debugShowCheckedModeBanner: false,
-      theme: buildTheme(Brightness.light),
-      darkTheme: buildTheme(Brightness.dark),
+      theme: buildTheme(),
+      themeMode: ThemeMode.dark,
       home: const HomeShell(),
     );
   }
@@ -103,37 +70,41 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final titles = [l10n.appTitle, l10n.titleProfiles, l10n.titleSetup];
     return Scaffold(
-      appBar: AppBar(title: Text(titles[_index])),
-      body: IndexedStack(
-        index: _index,
-        children: [
-          HomeScreen(refresh: _refresh, onOpenSetup: () => _select(2)),
-          ProfilesScreen(refresh: _refresh),
-          SetupScreen(refresh: _refresh),
-        ],
+      body: SafeArea(
+        bottom: false,
+        child: IndexedStack(
+          index: _index,
+          children: [
+            HomeScreen(refresh: _refresh, onOpenSetup: () => _select(2)),
+            ProfilesScreen(refresh: _refresh),
+            SetupScreen(refresh: _refresh),
+          ],
+        ),
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: _select,
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.auto_awesome_motion_outlined),
-            selectedIcon: const Icon(Icons.auto_awesome_motion),
-            label: l10n.navFrameGen,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.sports_esports_outlined),
-            selectedIcon: const Icon(Icons.sports_esports),
-            label: l10n.navProfiles,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.checklist_outlined),
-            selectedIcon: const Icon(Icons.checklist),
-            label: l10n.navSetup,
-          ),
-        ],
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(border: Border(top: BorderSide(color: Palette.line))),
+        child: NavigationBar(
+          selectedIndex: _index,
+          onDestinationSelected: _select,
+          destinations: [
+            NavigationDestination(
+              icon: const Icon(Icons.layers_outlined),
+              selectedIcon: const Icon(Icons.layers),
+              label: l10n.navFrameGen,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.sports_esports_outlined),
+              selectedIcon: const Icon(Icons.sports_esports),
+              label: l10n.navProfiles,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.tune_outlined),
+              selectedIcon: const Icon(Icons.tune),
+              label: l10n.navSetup,
+            ),
+          ],
+        ),
       ),
     );
   }
