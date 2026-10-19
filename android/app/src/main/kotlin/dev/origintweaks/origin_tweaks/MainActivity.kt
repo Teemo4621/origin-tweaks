@@ -89,8 +89,28 @@ class MainActivity : FlutterActivity() {
                 launch(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, Uri.parse("package:$packageName"))) ||
                     launch(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)),
             )
+            "getAppVersion" -> result.success(Updater.currentVersion(this))
+            "checkUpdate" -> background(result) { with(Updater) { findUpdate(this@MainActivity)?.toMap() } }
+            "installUpdate" -> installUpdate(result)
+            "openReleasePage" -> result.success(
+                launch(Intent(Intent.ACTION_VIEW, Uri.parse(Updater.latest?.pageUrl ?: RELEASES_PAGE))),
+            )
             else -> result.notImplemented()
         }
+    }
+
+    private fun installUpdate(result: MethodChannel.Result) {
+        val release = Updater.latest
+        if (release == null) {
+            result.success(Updater.INSTALL_FAILED)
+            return
+        }
+        if (!packageManager.canRequestPackageInstalls()) {
+            launch(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
+            result.success(Updater.INSTALL_NEEDS_PERMISSION)
+            return
+        }
+        background(result) { Updater.install(applicationContext, release) }
     }
 
     private fun background(result: MethodChannel.Result, work: () -> Any?) {
@@ -154,5 +174,6 @@ class MainActivity : FlutterActivity() {
         private const val CHANNEL = "origin_tweaks/native"
         private const val ICON_SIZE = 96
         private const val NOTIFICATION_REQUEST_CODE = 1001
+        private const val RELEASES_PAGE = "https://github.com/Teemo4621/origin-tweaks/releases"
     }
 }

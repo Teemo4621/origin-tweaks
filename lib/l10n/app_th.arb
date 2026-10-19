@@ -108,5 +108,20 @@
   "superResHigh": "สูง",
   "superResExtreme": "สูงสุด",
   "superResEnabled": "ตั้งเพิ่มความละเอียดเป็น {level} แล้ว",
-  "superResDisabled": "ปิดเพิ่มความละเอียดแล้ว"
+  "superResDisabled": "ปิดเพิ่มความละเอียดแล้ว",
+  "updateAvailableTitle": "มีเวอร์ชันใหม่: v{version}",
+  "updateInstall": "อัปเดต",
+  "updateDownloading": "กำลังดาวน์โหลด…",
+  "updateDetails": "ดูรายละเอียด",
+  "updateStarted": "กำลังเปิดตัวติดตั้ง…",
+  "updateNeedsPermission": "อนุญาตให้ Origin Tweaks ติดตั้งแอปที่ไม่รู้จัก แล้วกดอัปเดตอีกครั้ง",
+  "updateDownloadFailed": "ดาวน์โหลดไม่สำเร็จ ลองตรวจสอบอินเทอร์เน็ต",
+  "updateChecksumFailed": "ไฟล์ที่ดาวน์โหลดเสียหาย (checksum ไม่ตรง)",
+  "updateFailed": "เริ่มอัปเดตไม่สำเร็จ",
+  "setupSectionAbout": "เกี่ยวกับแอป",
+  "aboutVersion": "เวอร์ชัน {version}",
+  "updateCheck": "ตรวจหาอัปเดต",
+  "updateChecking": "กำลังตรวจหาอัปเดต…",
+  "updateUpToDate": "เป็นเวอร์ชันล่าสุดแล้ว",
+  "updateCheckFailed": "ตรวจหาอัปเดตไม่สำเร็จ"
 }

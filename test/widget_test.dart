@@ -5,12 +5,14 @@ import 'package:origin_tweaks/l10n/gen/app_localizations.dart';
 import 'package:origin_tweaks/main.dart';
 import 'package:origin_tweaks/models/preset.dart';
 import 'package:origin_tweaks/native/native_bridge.dart';
+import 'package:origin_tweaks/native/update_controller.dart';
 import 'package:origin_tweaks/screens/home_screen.dart';
 import 'package:origin_tweaks/screens/profiles_screen.dart';
 import 'package:origin_tweaks/screens/setup_screen.dart';
 import 'package:origin_tweaks/widgets/preset_grid.dart';
 import 'package:origin_tweaks/widgets/status_hero.dart';
 import 'package:origin_tweaks/widgets/super_res_card.dart';
+import 'package:origin_tweaks/widgets/update_card.dart';
 
 const _th = Locale('th');
 const _en = Locale('en');
@@ -227,5 +229,47 @@ void main() {
     picked = null;
     await tester.tap(find.text('สูงสุด'));
     expect(picked, isNull);
+  });
+
+  testWidgets('update card shows the new version and installs on tap', (tester) async {
+    final calls = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      const MethodChannel('origin_tweaks/native'),
+      (call) async {
+        calls.add(call.method);
+        return switch (call.method) {
+          'getAppVersion' => '0.1.0-alpha.3',
+          'checkUpdate' => <String, Object?>{'version': '0.1.0-alpha.4', 'notes': '## Notes\n- Faster frame gen', 'size': 1},
+          'installUpdate' => 4,
+          _ => null,
+        };
+      },
+    );
+    final controller = UpdateController.instance;
+    await controller.check();
+    expect(controller.status, UpdateStatus.available);
+
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(_localized(
+      Scaffold(body: ListView(children: [UpdateCard(controller: controller), AboutCard(controller: controller)])),
+    ));
+    expect(find.text('มีเวอร์ชันใหม่: v0.1.0-alpha.4'), findsNWidgets(2));
+    expect(find.text('- Faster frame gen'), findsOneWidget);
+    expect(find.textContaining('เวอร์ชัน 0.1.0-alpha.3'), findsOneWidget);
+
+    await tester.tap(find.text('อัปเดต').first);
+    await tester.pumpAndSettle();
+    expect(calls, contains('installUpdate'));
+    expect(find.text('อนุญาตให้ Origin Tweaks ติดตั้งแอปที่ไม่รู้จัก แล้วกดอัปเดตอีกครั้ง'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('install result codes match Updater constants', () {
+    expect(InstallResult.fromCode(0), InstallResult.started);
+    expect(InstallResult.fromCode(1), InstallResult.downloadFailed);
+    expect(InstallResult.fromCode(2), InstallResult.checksumFailed);
+    expect(InstallResult.fromCode(3), InstallResult.failed);
+    expect(InstallResult.fromCode(4), InstallResult.needsPermission);
   });
 }

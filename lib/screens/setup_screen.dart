@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../l10n/gen/app_localizations.dart';
 import '../native/native_bridge.dart';
+import '../native/update_controller.dart';
 import '../widgets/info_card.dart';
 import '../widgets/setup_card.dart';
 import '../widgets/shizuku_card.dart';
+import '../widgets/update_card.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key, required this.refresh});
@@ -67,6 +69,12 @@ class _SetupScreenState extends State<SetupScreen> {
             iconForeground: scheme.onSurfaceVariant,
             title: l10n.setupLimitsTitle,
             body: l10n.setupLimitsBody,
+          ),
+          const SizedBox(height: 24),
+          _SectionLabel(l10n.setupSectionAbout),
+          ListenableBuilder(
+            listenable: UpdateController.instance,
+            builder: (context, _) => AboutCard(controller: UpdateController.instance),
           ),
           const SizedBox(height: 16),
           Center(

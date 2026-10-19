@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import '../l10n/gen/app_localizations.dart';
 import '../models/preset.dart';
 import '../native/native_bridge.dart';
+import '../native/update_controller.dart';
 import '../widgets/info_card.dart';
 import '../widgets/onboarding_card.dart';
 import '../widgets/preset_grid.dart';
 import '../widgets/status_hero.dart';
+import '../widgets/update_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.refresh, this.onOpenSetup});
@@ -79,6 +81,19 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
+          ListenableBuilder(
+            listenable: UpdateController.instance,
+            builder: (context, _) => AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              alignment: Alignment.topCenter,
+              child: UpdateController.instance.update == null
+                  ? const SizedBox(width: double.infinity)
+                  : Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: UpdateCard(controller: UpdateController.instance),
+                    ),
+            ),
+          ),
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             alignment: Alignment.topCenter,

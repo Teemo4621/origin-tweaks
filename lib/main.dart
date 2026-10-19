@@ -4,6 +4,7 @@ import 'l10n/gen/app_localizations.dart';
 import 'screens/home_screen.dart';
 import 'screens/profiles_screen.dart';
 import 'screens/setup_screen.dart';
+import 'native/update_controller.dart';
 
 void main() {
   runApp(const OriginTweaksApp());
@@ -78,6 +79,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    UpdateController.instance.check();
   }
 
   @override

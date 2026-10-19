@@ -30,6 +30,7 @@
 |  **กันค่าโดนเขียนทับ** | ถ้า GameCube รีเซ็ตค่าตอนเข้าเกม แอปจะตั้งกลับให้ |
 |  **คืนค่าเดิมครบ** | จดค่าเดิมทุกตัวไว้ก่อนเปิด และคืนให้ทั้งหมดตอนปิด |
 |  **ตั้งค่าอัตโนมัติ** | กดปุ่มเดียวผ่าน Shizuku ครั้งแรกครั้งเดียว หลังจากนั้นไม่ต้องใช้ Shizuku อีก |
+|  **อัปเดตในแอป** | เปิดแอปแล้วเช็กเวอร์ชันใหม่จาก GitHub Releases ให้เอง กดอัปเดตแล้วดาวน์โหลด ตรวจ SHA-256 และเปิดตัวติดตั้งของระบบ |
 
 > [!NOTE]
 > ค่า **144 FPS** คือชุดค่าที่ community ทดสอบแล้วบน iQOO 15 ส่วน 90 / 120 FPS ใช้รูปแบบเดียวกันแต่ยังไม่ได้ทดสอบ
@@ -76,14 +77,14 @@ flowchart LR
 ```
 
 - **Origin Tweaks** (แอปหลัก) เป็นแอปปกติ ติดตั้งง่าย มี UI ปุ่มลัด และ Profile
-- **Origin Tweaks Helper** ฝังอยู่ในแอปหลัก ติดตั้งให้อัตโนมัติผ่าน Shizuku (`pm install --bypass-low-target-sdk-block`) ไม่มีไอคอน รับคำสั่งเฉพาะจากแอปที่เซ็นด้วย key เดียวกัน และแก้ได้แค่ 6 key ที่กำหนด
+- **Origin Tweaks Helper** ฝังอยู่ในแอปหลัก ติดตั้งให้อัตโนมัติผ่าน Shizuku (`pm install --bypass-low-target-sdk-block`) ไม่มีไอคอน รับคำสั่งเฉพาะจากแอปที่เซ็นด้วย key เดียวกัน และแก้ได้แค่ 7 key ที่กำหนด
 
 <details>
 <summary><b>ค่าที่แอปเขียนเมื่อเปิด 144 FPS</b></summary>
 
 | หมวด | Key | ค่า |
 |---|---|---|
-| system | `gamecube_frame_interpolation` | `1:106::48:144` |
+| system | `gamecube_frame_interpolation_for_sr` | `1:1::48:144` |
 | secure | `gamecube_super_resolution` | `2:` |
 | system | `vivo_sr_status` | `2` |
 | global | `xpq_value_from_gamecube` | `1` |

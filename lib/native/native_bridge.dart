@@ -60,6 +60,38 @@ class AppEntry {
   final bool isGame;
 }
 
+class UpdateInfo {
+  const UpdateInfo({required this.version, this.notes = '', this.pageUrl = '', this.size = 0});
+
+  factory UpdateInfo.fromMap(Map<String, Object?> map) => UpdateInfo(
+        version: map['version'] as String? ?? '',
+        notes: map['notes'] as String? ?? '',
+        pageUrl: map['pageUrl'] as String? ?? '',
+        size: (map['size'] as num?)?.toInt() ?? 0,
+      );
+
+  final String version;
+  final String notes;
+  final String pageUrl;
+  final int size;
+}
+
+enum InstallResult {
+  started,
+  downloadFailed,
+  checksumFailed,
+  failed,
+  needsPermission;
+
+  static InstallResult fromCode(int? code) => switch (code) {
+        0 => started,
+        1 => downloadFailed,
+        2 => checksumFailed,
+        4 => needsPermission,
+        _ => failed,
+      };
+}
+
 class NativeBridge {
   NativeBridge._();
 
@@ -142,4 +174,16 @@ class NativeBridge {
       await _channel.invokeMethod<bool>('grantUsageAccess') ?? false;
 
   static Future<void> openUsageAccessSettings() => _channel.invokeMethod('openUsageAccessSettings');
+
+  static Future<String> appVersion() async => await _channel.invokeMethod<String>('getAppVersion') ?? '';
+
+  static Future<UpdateInfo?> checkUpdate() async {
+    final map = await _channel.invokeMapMethod<String, Object?>('checkUpdate');
+    return map == null ? null : UpdateInfo.fromMap(map);
+  }
+
+  static Future<InstallResult> installUpdate() async =>
+      InstallResult.fromCode(await _channel.invokeMethod<int>('installUpdate'));
+
+  static Future<void> openReleasePage() => _channel.invokeMethod('openReleasePage');
 }

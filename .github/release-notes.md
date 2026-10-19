@@ -3,6 +3,14 @@
 >
 > **Alpha build** — may still have bugs. Tested only on the iQOO 15 (PD2505), OriginOS 6. The app follows the device language (Thai / English). See the [English README](../../blob/main/README.en.md) for install steps.
 
+## มีอะไรใหม่ / What's new
+
+- **อัปเดตในแอป** เปิดแอปแล้วจะเช็กเวอร์ชันใหม่ให้เอง กด **อัปเดต** เพื่อดาวน์โหลดและติดตั้ง (ครั้งแรกต้องอนุญาต "ติดตั้งแอปที่ไม่รู้จัก") · **In-app updates**: the app checks for new releases and installs them through the system installer
+- **ทดลอง:** แทรกเฟรมเปลี่ยนไปเขียน `gamecube_frame_interpolation_for_sr` (`1:1::48:144`) ซึ่ง GameCube ไม่เขียนทับตอนเข้าเกม · **Experimental:** frame generation now writes `gamecube_frame_interpolation_for_sr`
+
+> [!IMPORTANT]
+> ตัวช่วย (Helper) อัปเป็นเวอร์ชัน 2 หลังอัปเดตให้เปิด Shizuku แล้วกด **ตั้งค่าอัตโนมัติ** อีกครั้ง และควร **ปิดแทรกเฟรมในเวอร์ชันเก่าก่อนอัปเดต** · The helper was updated: run **Auto setup** again with Shizuku, and turn frame generation off in the old version before updating.
+
 ## ติดตั้ง
 
 1. ติดตั้ง [Shizuku](https://shizuku.rikka.app/) แล้วกด Start ผ่าน Wireless debugging

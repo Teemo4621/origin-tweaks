@@ -164,5 +164,34 @@
       }
     }
   },
-  "superResDisabled": "Super resolution turned off"
+  "superResDisabled": "Super resolution turned off",
+  "updateAvailableTitle": "Update available: v{version}",
+  "@updateAvailableTitle": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateInstall": "Update",
+  "updateDownloading": "Downloading…",
+  "updateDetails": "Release notes",
+  "updateStarted": "Opening the installer…",
+  "updateNeedsPermission": "Allow Origin Tweaks to install unknown apps, then tap Update again",
+  "updateDownloadFailed": "Download failed. Check your connection",
+  "updateChecksumFailed": "The downloaded file is damaged (checksum mismatch)",
+  "updateFailed": "Couldn't start the update",
+  "setupSectionAbout": "About",
+  "aboutVersion": "Version {version}",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheck": "Check for updates",
+  "updateChecking": "Checking for updates…",
+  "updateUpToDate": "You're on the latest version",
+  "updateCheckFailed": "Couldn't check for updates"
 }
