@@ -10,4 +10,6 @@ interface IShellService {
     boolean grantUsageStats(String packageName) = 3;
 
     boolean whitelistDoze(String packageName) = 4;
+
+    String setFixedPerformance(boolean enabled) = 5;
 }

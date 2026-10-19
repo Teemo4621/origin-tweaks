@@ -52,6 +52,17 @@
         </service>
 
         <service
+            android:name=".MonsterPlusTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_monster"
+            android:label="@string/monster_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <service
             android:name=".ProfileService"
             android:exported="false"
             android:foregroundServiceType="specialUse">

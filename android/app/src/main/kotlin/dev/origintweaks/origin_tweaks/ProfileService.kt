@@ -28,6 +28,7 @@ class ProfileService : Service() {
     private var foregroundPackage: String? = null
     private var target: Preset = Preset.OFF
     private var lastReapply = 0L
+    private var lastTweakReapply = 0L
 
     private val poll = object : Runnable {
         override fun run() {
@@ -40,12 +41,22 @@ class ProfileService : Service() {
 
     private val verifyTarget = Runnable { verify("foreground") }
     private val verifyTargetLate = Runnable { verify("foreground-late") }
+    private val lateTweakCheck = Runnable { scheduleTweakCheck() }
 
     private val settingObserver = object : ContentObserver(handler) {
         override fun onChange(selfChange: Boolean) {
             Log.i(TAG, "interpolation setting changed")
             verify("observer")
         }
+    }
+
+    private val reapplyTweaks = Runnable {
+        lastTweakReapply = SystemClock.elapsedRealtime()
+        ShizukuBridge.reapplyTweaks()
+    }
+
+    private val tweakObserver = object : ContentObserver(handler) {
+        override fun onChange(selfChange: Boolean) = scheduleTweakCheck()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -60,6 +71,9 @@ class ProfileService : Service() {
         contentResolver.registerContentObserver(
             Settings.System.getUriFor(FrameGen.INTERPOLATION_KEY), false, settingObserver,
         )
+        Tweaks.watchedSystemKeys.forEach { key ->
+            contentResolver.registerContentObserver(Settings.System.getUriFor(key), false, tweakObserver)
+        }
         lastQueryTime = System.currentTimeMillis() - INITIAL_LOOKBACK_MS
         foregroundPackage = ForegroundApp.current(this)
         handler.post(poll)
@@ -72,12 +86,14 @@ class ProfileService : Service() {
         }
 
         reevaluate(delayMs = 0)
+        scheduleTweakCheck()
         return START_STICKY
     }
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
         contentResolver.unregisterContentObserver(settingObserver)
+        contentResolver.unregisterContentObserver(tweakObserver)
 
         val manual = store.manualPreset
         if (target != manual) ShizukuBridge.applyPreset(manual) {}
@@ -104,7 +120,16 @@ class ProfileService : Service() {
             handler.removeCallbacks(verifyTargetLate)
             handler.postDelayed(verifyTarget, APPLY_DELAY_MS + VERIFY_DELAY_MS)
             handler.postDelayed(verifyTargetLate, LATE_VERIFY_DELAY_MS)
+            handler.removeCallbacks(lateTweakCheck)
+            handler.postDelayed(lateTweakCheck, LATE_VERIFY_DELAY_MS)
+            scheduleTweakCheck(minDelayMs = APPLY_DELAY_MS + VERIFY_DELAY_MS)
         }
+    }
+
+    private fun scheduleTweakCheck(minDelayMs: Long = 0) {
+        handler.removeCallbacks(reapplyTweaks)
+        val wait = lastTweakReapply + TWEAK_REAPPLY_MIN_INTERVAL_MS - SystemClock.elapsedRealtime()
+        handler.postDelayed(reapplyTweaks, maxOf(wait, minDelayMs, 0))
     }
 
     private fun reevaluate(delayMs: Long) {
@@ -195,6 +220,7 @@ class ProfileService : Service() {
         private const val VERIFY_DELAY_MS = 500L
         private const val LATE_VERIFY_DELAY_MS = 5000L
         private const val REAPPLY_MIN_INTERVAL_MS = 1000L
+        private const val TWEAK_REAPPLY_MIN_INTERVAL_MS = 3000L
 
         fun sync(context: Context) {
             val intent = Intent(context, ProfileService::class.java)

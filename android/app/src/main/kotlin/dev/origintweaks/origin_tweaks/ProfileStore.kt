@@ -41,8 +41,20 @@ class ProfileStore(context: Context) {
         get() = prefs.getString(KEY_SAVED_SUPER_RES, null)
         set(value) = prefs.edit().putString(KEY_SAVED_SUPER_RES, value).apply()
 
+    fun isTweakEnabled(tweak: Tweaks.Tweak): Boolean = prefs.getBoolean(tweak.enabledPref, false)
+
+    fun setTweakEnabled(tweak: Tweaks.Tweak, enabled: Boolean) =
+        prefs.edit().putBoolean(tweak.enabledPref, enabled).apply()
+
+    fun savedTweak(tweak: Tweaks.Tweak): Map<String, String>? =
+        prefs.getString(tweak.savedPref, null)?.let { decodeValues(it) }
+
+    fun setSavedTweak(tweak: Tweaks.Tweak, values: Map<String, String>?) =
+        prefs.edit().putString(tweak.savedPref, values?.let { encodeValues(it) }).apply()
+
     val needsService: Boolean
-        get() = profileServiceEnabled || manualPreset.enabled
+        get() = profileServiceEnabled || manualPreset.enabled ||
+            Tweaks.ALL.any { it.keepApplied && isTweakEnabled(it) }
 
     companion object {
         private const val PREFS = "origin_tweaks"

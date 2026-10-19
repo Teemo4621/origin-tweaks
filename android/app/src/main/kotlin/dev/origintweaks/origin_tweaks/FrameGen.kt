@@ -22,7 +22,7 @@ object FrameGen {
 
     private const val TAG = "OriginTweaks"
 
-    private enum class Namespace { SYSTEM, SECURE, GLOBAL }
+    internal enum class Namespace { SYSTEM, SECURE, GLOBAL }
 
     private class Entry(val namespace: Namespace, val key: String, val on: (Preset) -> String, val off: String?)
 
@@ -124,7 +124,7 @@ object FrameGen {
         return if (store.superResLevel > 0 && superResOriginal != null) values + (SUPER_RES_KEY to superResOriginal) else values
     }
 
-    private fun read(context: Context, namespace: Namespace, key: String): String? = try {
+    internal fun read(context: Context, namespace: Namespace, key: String): String? = try {
         val resolver = context.contentResolver
         when (namespace) {
             Namespace.SYSTEM -> HelperClient.get(context, key)
@@ -136,7 +136,7 @@ object FrameGen {
         null
     }
 
-    private fun write(context: Context, namespace: Namespace, key: String, value: String) {
+    internal fun write(context: Context, namespace: Namespace, key: String, value: String) {
         val resolver = context.contentResolver
         when (namespace) {
             Namespace.SYSTEM -> HelperClient.put(context, key, value)

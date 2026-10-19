@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -57,6 +58,25 @@ class MainActivity : FlutterActivity() {
                 result.success(mapOf("level" to store.superResLevel, "value" to value))
             }
             "setSuperRes" -> ShizukuBridge.applySuperRes(call.argument<Int>("level") ?: -1) { result.success(it) }
+            "getTweak" -> {
+                val tweak = Tweaks.byId(call.argument<String>("id"))
+                if (tweak == null) {
+                    result.error("bad_tweak", "Unknown tweak", null)
+                } else {
+                    ShizukuBridge.readTweak(tweak) { result.success(it) }
+                }
+            }
+            "setTweak" -> {
+                val tweak = Tweaks.byId(call.argument<String>("id"))
+                if (tweak == null) {
+                    result.error("bad_tweak", "Unknown tweak", null)
+                } else {
+                    ShizukuBridge.applyTweak(tweak, call.argument<Boolean>("enabled") == true) { code ->
+                        ProfileService.sync(this)
+                        result.success(code)
+                    }
+                }
+            }
             "getSetupStatus" -> result.success(ShizukuBridge.setupStatus())
             "autoSetup" -> ShizukuBridge.autoSetup { status ->
                 ProfileService.sync(this)
@@ -89,6 +109,7 @@ class MainActivity : FlutterActivity() {
                 launch(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, Uri.parse("package:$packageName"))) ||
                     launch(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)),
             )
+            "getThermalStatus" -> result.success(getSystemService(PowerManager::class.java).currentThermalStatus)
             "getAppVersion" -> result.success(Updater.currentVersion(this))
             "checkUpdate" -> background(result) { with(Updater) { findUpdate(this@MainActivity)?.toMap() } }
             "installUpdate" -> installUpdate(result)

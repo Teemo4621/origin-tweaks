@@ -16,4 +16,9 @@
     <string name="profile_title">Automatic frame generation</string>
     <string name="profile_waiting">Off</string>
     <string name="profile_active">%1$s · %2$s</string>
+    <string name="monster_tile_label">Monster+</string>
+    <string name="monster_tile_on">On (experimental)</string>
+    <string name="monster_tile_off">Off</string>
+    <string name="monster_tile_failed">Could not switch Monster+</string>
+    <string name="monster_tile_description">Monster+: %1$s</string>
 </resources>

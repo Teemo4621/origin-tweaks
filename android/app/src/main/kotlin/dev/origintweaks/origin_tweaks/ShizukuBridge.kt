@@ -106,6 +106,31 @@ object ShizukuBridge {
         }
     }
 
+    fun applyTweak(tweak: Tweaks.Tweak, enabled: Boolean, onDone: (Int) -> Unit) {
+        executor.execute {
+            val result = Tweaks.apply(appContext, tweak, enabled)
+            if (result != FrameGen.RESULT_OK) Log.w(TAG, "${tweak.id} $enabled failed: $result")
+            mainHandler.post { onDone(result) }
+        }
+        if (tweak == Tweaks.MONSTER_PLUS && state() == State.READY) {
+            use { shell ->
+                val output = runCatching { shell?.setFixedPerformance(enabled) }.getOrNull()
+                Log.i(TAG, "fixed performance $enabled: ${output ?: "failed"}")
+            }
+        }
+    }
+
+    fun readTweak(tweak: Tweaks.Tweak, onDone: (Map<String, Any?>) -> Unit) {
+        executor.execute {
+            val status = Tweaks.status(appContext, tweak)
+            mainHandler.post { onDone(status) }
+        }
+    }
+
+    fun reapplyTweaks() {
+        executor.execute { Tweaks.reapplyDrifted(appContext) }
+    }
+
     fun readSuperRes(onDone: (String?) -> Unit) {
         executor.execute {
             val value = FrameGen.readSuperRes(appContext)
@@ -209,7 +234,7 @@ object ShizukuBridge {
             .daemon(false)
             .processNameSuffix("shell")
             .debuggable(debuggable)
-            .version(6)
+            .version(7)
     }
 
     private fun isShizukuInstalled(): Boolean = try {

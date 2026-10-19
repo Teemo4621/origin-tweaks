@@ -21,7 +21,11 @@ public final class HelperProvider extends ContentProvider {
             "nova_memc_status",
             "vivo_fullscreen_flag",
             "memc_main_switch_setting",
-            "gamewatch_game_target_fps"));
+            "gamewatch_game_target_fps",
+            "game_plus_mode_key",
+            "power_save_type",
+            "gamecube_hawkeye_effective",
+            "vts_game_para_adjust"));
 
     @Override
     public boolean onCreate() {

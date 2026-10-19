@@ -47,6 +47,9 @@ class ShellUserService : IShellService.Stub() {
         return run(CMD, "deviceidle", "whitelist", "+$packageName") != null
     }
 
+    override fun setFixedPerformance(enabled: Boolean): String? =
+        run(CMD, "power", "set-fixed-performance-mode-enabled", enabled.toString())
+
     private fun run(vararg command: String): String? = try {
         val process = ProcessBuilder(*command).redirectErrorStream(true).start()
         val output = process.inputStream.bufferedReader().use { it.readText() }.trim()

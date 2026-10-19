@@ -16,4 +16,9 @@
     <string name="profile_title">แทรกเฟรมอัตโนมัติ</string>
     <string name="profile_waiting">ปิดอยู่</string>
     <string name="profile_active">%1$s · %2$s</string>
+    <string name="monster_tile_label">Monster+</string>
+    <string name="monster_tile_on">เปิด (ทดลอง)</string>
+    <string name="monster_tile_off">ปิด</string>
+    <string name="monster_tile_failed">สลับ Monster+ ไม่สำเร็จ</string>
+    <string name="monster_tile_description">Monster+: %1$s</string>
 </resources>
