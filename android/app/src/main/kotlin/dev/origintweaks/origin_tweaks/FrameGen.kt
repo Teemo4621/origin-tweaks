@@ -16,7 +16,7 @@ object FrameGen {
 
     const val RESULT_NO_HELPER = 4
 
-    const val INTERPOLATION_KEY = "gamecube_frame_interpolation"
+    const val INTERPOLATION_KEY = "gamecube_frame_interpolation_for_sr"
     const val SUPER_RES_KEY = "gamecube_super_resolution"
     const val SUPER_RES_OFF = "0:0"
 

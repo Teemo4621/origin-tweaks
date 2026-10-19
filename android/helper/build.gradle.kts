@@ -17,7 +17,7 @@ android {
         applicationId = "dev.origintweaks.origin_tweaks.helper"
         minSdk = 22
         targetSdk = 22
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0"
     }
 

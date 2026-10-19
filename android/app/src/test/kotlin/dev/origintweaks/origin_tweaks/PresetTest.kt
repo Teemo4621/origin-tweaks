@@ -9,9 +9,9 @@ import org.junit.Test
 class PresetTest {
     @Test
     fun interpolationValuesMatchTheWorkingTaskerValue() {
-        assertEquals("1:106::48:144", Preset.FPS144.interpolationValue)
-        assertEquals("1:106::60:120", Preset.FPS120.interpolationValue)
-        assertEquals("1:106::45:90", Preset.FPS90.interpolationValue)
+        assertEquals("1:1::48:144", Preset.FPS144.interpolationValue)
+        assertEquals("1:1::60:120", Preset.FPS120.interpolationValue)
+        assertEquals("1:1::45:90", Preset.FPS90.interpolationValue)
         assertEquals("0:-1:0:0:0", Preset.OFF.interpolationValue)
     }
 

@@ -10,7 +10,7 @@ import java.io.File
 object HelperClient {
     const val PACKAGE = "dev.origintweaks.origin_tweaks.helper"
 
-    const val BUNDLED_VERSION = 1L
+    const val BUNDLED_VERSION = 2L
 
     private const val TAG = "OriginTweaks"
     private const val ASSET = "helper.apk"

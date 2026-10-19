@@ -16,6 +16,7 @@ import java.util.Set;
 public final class HelperProvider extends ContentProvider {
     private static final Set<String> ALLOWED_KEYS = new HashSet<>(Arrays.asList(
             "gamecube_frame_interpolation",
+            "gamecube_frame_interpolation_for_sr",
             "vivo_sr_status",
             "nova_memc_status",
             "vivo_fullscreen_flag",

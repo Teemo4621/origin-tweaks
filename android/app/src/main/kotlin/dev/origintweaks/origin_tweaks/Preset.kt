@@ -14,7 +14,7 @@ enum class Preset(val id: String, val sourceFps: Int, val targetFps: Int, val la
     fun next(): Preset = entries[(ordinal + 1) % entries.size]
 
     companion object {
-        const val GAME_INDEX = 106
+        const val GAME_INDEX = 1
         const val OFF_VALUE = "0:-1:0:0:0"
 
         fun fromId(id: String?): Preset? = entries.firstOrNull { it.id == id }
